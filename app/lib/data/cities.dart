@@ -18,7 +18,11 @@ class City {
   final double lng;
   final double utcOffset;
 
-  String name(String lang) => lang == 'ar' ? ar : (lang == 'en' ? en : ru);
+  String name(String lang) => switch (lang) {
+    'ar' => ar,
+    'en' || 'uz' || 'az' => en,
+    _ => ru,
+  };
 }
 
 const cities = <City>[

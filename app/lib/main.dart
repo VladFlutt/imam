@@ -8,6 +8,7 @@ import 'screens/map.dart';
 import 'screens/more.dart';
 import 'screens/prayer.dart';
 import 'screens/quran.dart';
+import 'services/notifications.dart';
 import 'services/quran.dart';
 import 'theme.dart';
 
@@ -18,6 +19,14 @@ Future<void> main() async {
   QuranRepo.instance.load().then(
     (_) => QuranRepo.instance.ensureTranslation(state.quranTr),
   );
+  // Напоминания о намазе: перепланируем при запуске и при смене настроек.
+  var signature = state.azanSignature;
+  AzanNotifications.reschedule(state);
+  state.addListener(() {
+    if (state.azanSignature == signature) return;
+    signature = state.azanSignature;
+    AzanNotifications.reschedule(state);
+  });
   runApp(AppScope(state: state, child: const ImamApp()));
 }
 

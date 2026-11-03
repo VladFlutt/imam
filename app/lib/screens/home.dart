@@ -122,23 +122,31 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Palette.gold.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        durationText(
-                          PrayerService.until(s, next.value),
-                          l,
-                          s.num,
+                    Flexible(
+                      flex: 100,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Palette.gold.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            durationText(
+                              PrayerService.until(s, next.value),
+                              l,
+                              s.num,
+                            ),
+                            style: TextStyle(color: onDark, fontSize: 13),
+                          ),
                         ),
-                        style: TextStyle(color: onDark, fontSize: 13),
                       ),
                     ),
                   ],
@@ -330,7 +338,7 @@ class _DailyCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    item.source!,
+                    l.source(item.source!),
                     style: Theme.of(
                       context,
                     ).textTheme.labelMedium?.copyWith(color: scheme.primary),
