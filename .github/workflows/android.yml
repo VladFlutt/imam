@@ -29,7 +29,8 @@ jobs:
       - run: flutter test
       # Подпись отладочным ключом: APK ставится на телефон для проверки,
       # но для публикации в магазине нужен свой ключ.
-      - run: flutter build apk --release --split-per-abi
+      # Адрес сервера помощника — переменная репозитория AI_ENDPOINT (см. README).
+      - run: flutter build apk --release --split-per-abi --dart-define=AI_ENDPOINT=${{ vars.AI_ENDPOINT }}
       - uses: actions/upload-artifact@v4
         with:
           name: imam-apk
