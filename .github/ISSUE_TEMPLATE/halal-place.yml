@@ -1,0 +1,33 @@
+name: Место халяль или мечеть
+description: Предложить новое место или исправить существующее
+title: "Новое место: "
+labels: [halal-place]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Тип
+      options: [Халяль (магазин, кафе, ресторан), Мечеть]
+    validations:
+      required: true
+  - type: input
+    id: name
+    attributes:
+      label: Название
+    validations:
+      required: true
+  - type: input
+    id: address
+    attributes:
+      label: Адрес или координаты
+    validations:
+      required: true
+  - type: input
+    id: certificate
+    attributes:
+      label: Сертификат халяль
+      description: Кто выдал, номер, срок действия. Ссылка или фото сертификата сильно ускорит проверку.
+  - type: textarea
+    id: comment
+    attributes:
+      label: Комментарий

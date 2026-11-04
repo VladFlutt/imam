@@ -1,8 +1,11 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imam/data/content.dart';
 import 'package:imam/data/content_cis.dart';
 import 'package:imam/l10n.dart';
+import 'package:imam/services/hadith.dart';
 import 'package:imam/services/hijri.dart';
+import 'package:imam/services/places.dart';
 import 'package:imam/services/quran.dart';
 
 void main() {
@@ -54,5 +57,62 @@ void main() {
         expect(L10n(lang).tr(m), cisContent[m['ru']]![lang]);
       }
     }
+  });
+
+  test(
+    '40 хадисов ан-Навави: 42 хадиса с арабским текстом и переводами',
+    () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      await HadithRepo.instance.load();
+      final items = HadithRepo.instance.items;
+      expect(items.length, 42);
+      for (final h in items) {
+        expect(h.arabic, isNotEmpty);
+        expect(h.ru.length, greaterThan(30));
+        expect(h.en.length, greaterThan(30));
+        expect(h.arabic.contains('صلى الله عليه'), isFalse);
+      }
+    },
+  );
+
+  test('источники хадисов переводятся', () {
+    expect(
+      L10n('en').source('Ибн Маджа, ад-Даракутни'),
+      'Ibn Majah, ad-Daraqutni',
+    );
+    expect(L10n('uz').source('аль-Бухари, Муслим'), 'al-Buxoriy, Muslim');
+  });
+
+  test('каталог халяль: разбор записи и срок сертификата', () {
+    final places = HalalCatalog.parse('''
+{"version":1,"places":[
+ {"id":"t1","kind":"halal","name":"Кафе","lat":55.7,"lng":37.6,"osm":"node/1",
+  "certificate":{"issuer":"Орган","number":"№ 1","until":"2099-01-01"},"checked":"2026-11-04"},
+ {"id":"t2","kind":"halal","name":"Магазин","lat":55.8,"lng":37.7,
+  "certificate":{"issuer":"Орган","until":"2020-01-01"}}
+]}''');
+    expect(places.length, 2);
+    expect(places[0].certified, isTrue);
+    expect(places[0].osmId, 'node/1');
+    expect(places[1].certified, isFalse);
+    expect(places[1].certificate!.expired, isTrue);
+  });
+
+  test('встроенный каталог корректен', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final raw = await rootBundle.loadString('assets/halal/catalog.json');
+    expect(HalalCatalog.parse(raw), isA<List<Place>>());
+  });
+
+  test('заявка на место: ссылка на форму GitHub', () {
+    final u = PlaceSuggestion(
+      kind: PlaceKind.halal,
+      name: 'Кафе',
+      lat: 55.75,
+      lng: 37.61,
+    ).githubIssueUrl();
+    expect(u.host, 'github.com');
+    expect(u.queryParameters['title'], 'Новое место: Кафе');
+    expect(u.queryParameters['body'], contains('55.750000, 37.610000'));
   });
 }

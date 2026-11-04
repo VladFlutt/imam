@@ -1,0 +1,58 @@
+# Тесты и выкладка сервера ИИ-помощника (worker/) на Cloudflare Workers.
+# Выкладка включается, когда в Settings → Secrets and variables → Actions
+# добавлены секреты CLOUDFLARE_API_TOKEN и CLOUDFLARE_ACCOUNT_ID.
+# Необязательные секреты: GROQ_API_KEY, OPENROUTER_API_KEY (быстрее и точнее
+# встроенной модели Cloudflare) и IMAM_ISSUES_TOKEN (заявки на места → issues).
+name: AI worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'worker/**'
+      - 'app/assets/ai/blocklist.json'
+      - '.github/workflows/worker.yml'
+  pull_request:
+    paths:
+      - 'worker/**'
+      - 'app/assets/ai/blocklist.json'
+  workflow_dispatch:
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+      - name: Нет ключей Cloudflare — выкладка пропущена
+        if: env.CLOUDFLARE_API_TOKEN == '' && github.event_name != 'pull_request'
+        run: echo "::notice::Добавьте секреты CLOUDFLARE_API_TOKEN и CLOUDFLARE_ACCOUNT_ID, чтобы выложить помощника."
+
+      - name: Выкладка на Cloudflare
+        if: env.CLOUDFLARE_API_TOKEN != '' && github.event_name != 'pull_request'
+        run: npx wrangler deploy
+
+      - name: Ключи моделей и заявок
+        if: env.CLOUDFLARE_API_TOKEN != '' && github.event_name != 'pull_request'
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          IMAM_ISSUES_TOKEN: ${{ secrets.IMAM_ISSUES_TOKEN }}
+        run: |
+          put() { if [ -n "$2" ]; then printf '%s' "$2" | npx wrangler secret put "$1"; fi; }
+          put GROQ_API_KEY "$GROQ_API_KEY"
+          put OPENROUTER_API_KEY "$OPENROUTER_API_KEY"
+          put GITHUB_TOKEN "$IMAM_ISSUES_TOKEN"

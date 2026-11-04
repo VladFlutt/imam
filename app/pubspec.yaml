@@ -34,6 +34,8 @@ flutter:
   assets:
     - assets/quran/
     - assets/ai/blocklist.json
+    - assets/hadith/
+    - assets/halal/catalog.json
   fonts:
     - family: NotoSans
       fonts:

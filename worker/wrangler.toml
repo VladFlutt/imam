@@ -16,3 +16,5 @@ GROQ_MODEL = "llama-3.3-70b-versatile"
 OPENROUTER_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
 WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 DAILY_LIMIT_PER_IP = "60"
+# Куда приходят заявки на места халяль (issue). Нужен секрет GITHUB_TOKEN с правом Issues: write.
+GITHUB_REPO = "VladFlutt/imam"

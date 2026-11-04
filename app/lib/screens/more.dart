@@ -6,6 +6,7 @@ import '../widgets/common.dart';
 import 'assistant.dart';
 import 'calendar.dart';
 import 'duas.dart';
+import 'hadith.dart';
 import 'qibla.dart';
 import 'settings.dart';
 
@@ -19,6 +20,7 @@ class MoreScreen extends StatelessWidget {
     final items = <(IconData, String, Widget)>[
       (Icons.calendar_month_outlined, 'calendar', const CalendarScreen()),
       (Icons.volunteer_activism_outlined, 'duas', const DuasScreen()),
+      (Icons.auto_stories_outlined, 'hadith40', const HadithListScreen()),
       (Icons.radio_button_checked, 'tasbih', const TasbihScreen()),
       (Icons.explore_outlined, 'qibla', const QiblaScreen()),
       if (!s.kidsMode)
@@ -69,6 +71,7 @@ class AboutScreen extends StatelessWidget {
       'Мечети и халяль: © участники OpenStreetMap (ODbL)',
       'Шрифты: Amiri Quran, Amiri, Noto Naskh Arabic, Noto Sans (SIL OFL)',
       'Хадисы: аль-Бухари, Муслим, ат-Тирмизи, Абу Дауд (номера по нумерации Fuad Abd al-Baqi / Dar al-Salam)',
+      '40 хадисов ан-Навави: арабский текст — пакет @kazishariar/nawawi-40-hadith-data (CC BY 4.0); переводы — редакция приложения, на проверке у имама',
     ];
     return Scaffold(
       appBar: AppBar(title: Text(l.t('about'))),
