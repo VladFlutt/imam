@@ -1,0 +1,37 @@
+# Сборка APK для проверки на телефоне. Готовый файл — во вкладке Actions,
+# в разделе Artifacts нужного запуска («imam-apk»).
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+      # Подпись отладочным ключом: APK ставится на телефон для проверки,
+      # но для публикации в магазине нужен свой ключ.
+      - run: flutter build apk --release --split-per-abi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: imam-apk
+          path: app/build/app/outputs/flutter-apk/*-release.apk
+          retention-days: 30
