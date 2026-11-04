@@ -35,7 +35,7 @@ flutter build web --release --no-web-resources-cdn \
   --dart-define=AI_ENDPOINT=https://imam-ai.ACCOUNT.workers.dev
 ```
 
-Без `AI_ENDPOINT` помощник работает в офлайн-режиме: фильтрует вопрос и показывает подходящие аяты, но не формулирует ответ.
+По умолчанию приложение обращается к выложенному серверу проекта `https://imam-ai.vladimir-sadikovv.workers.dev`. `AI_ENDPOINT` нужен, только чтобы указать другой адрес. Если сервер недоступен, помощник работает офлайн: фильтрует вопрос и показывает подходящие аяты, но не формулирует ответ.
 
 ## Сервер ИИ-помощника
 
@@ -61,7 +61,7 @@ Workflow `.github/workflows/worker.yml` проверяет и выкладыва
 | `OPENROUTER_API_KEY` | нет | openrouter.ai → Keys (бесплатные модели `:free`) |
 | `IMAM_ISSUES_TOKEN` | нет | github.com → Settings → Developer settings → Fine-grained token на этот репозиторий с правом Issues: Read and write; нужен для заявок на места |
 
-После первой выкладки адрес сервера (`https://imam-ai.<ваш-поддомен>.workers.dev`) виден в логе шага «Выкладка на Cloudflare». Его нужно записать в переменную репозитория `AI_ENDPOINT` (Settings → Secrets and variables → Actions → Variables): с ней собираются APK.
+После первой выкладки адрес сервера (`https://imam-ai.<ваш-поддомен>.workers.dev`) виден в логе шага «Выкладка на Cloudflare». Он уже прописан в приложении по умолчанию. Если адрес изменится, запишите новый в переменную репозитория `AI_ENDPOINT` (Settings → Secrets and variables → Actions → Variables): с ней собираются APK. После выкладки шаг «Проверка помощника» задаёт серверу тестовый вопрос.
 
 Модели пробуются по очереди: Groq, затем бесплатные модели OpenRouter, затем Cloudflare Workers AI (работает без внешних ключей). Названия моделей задаются в `wrangler.toml`. Поиск аятов делается на телефоне, сервер получает только текст вопроса и найденные аяты, а модели разрешено ссылаться только на них; лишние ссылки вырезаются. Словарь запретных слов и тем общий для приложения и сервера: `app/assets/ai/blocklist.json`.
 
