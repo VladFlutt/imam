@@ -75,6 +75,80 @@ void main() {
     },
   );
 
+  test('хадисы переведены на все языки СНГ', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await HadithRepo.instance.load();
+    final cyr = RegExp('[А-Яа-яЁё]');
+    final lat = RegExp('[A-Za-z]');
+    for (final lang in HadithRepo.translations) {
+      final latin = lang == 'uz' || lang == 'az';
+      for (final h in HadithRepo.instance.items) {
+        expect(h.hasOwn(lang), isTrue, reason: '$lang #${h.n}');
+        final text = '${h.titleFor(lang)} ${h.translation(lang)}';
+        expect(
+          text.contains(latin ? cyr : lat),
+          isFalse,
+          reason: '$lang #${h.n}: смешение алфавитов',
+        );
+        expect(h.translation(lang), isNot(h.ru));
+        if (h.note != null) expect(h.noteFor(lang), isNot(h.note!['ru']));
+      }
+    }
+    final first = HadithRepo.instance.items.first;
+    expect(first.titleFor('kk'), 'Амалдар ниетке қарай');
+    expect(first.translation('ar'), isNull);
+  });
+
+  test('новые строки компаса и геолокации есть на всех языках', () {
+    const keys = [
+      'compass_enable',
+      'compass_unavailable',
+      'gps_off',
+      'gps_denied_forever',
+      'gps_timeout',
+      'open_settings',
+    ];
+    for (final lang in ['ru', 'en', 'ar', 'tt', 'uz', 'kk', 'ky', 'tg', 'az']) {
+      for (final k in keys) {
+        final v = L10n(lang).t(k);
+        expect(v.isNotEmpty && v != k, isTrue, reason: '$lang $k');
+      }
+    }
+  });
+
+  test('ответ Overpass разбирается в мечети и халяль', () {
+    final places = PlacesService.parse({
+      'elements': [
+        {
+          'type': 'way',
+          'id': 7,
+          'center': {'lat': 55.7, 'lon': 37.6},
+          'tags': {
+            'amenity': 'place_of_worship',
+            'religion': 'muslim',
+            'name': 'Соборная мечеть',
+          },
+        },
+        {
+          'type': 'node',
+          'id': 8,
+          'lat': 55.71,
+          'lon': 37.61,
+          'tags': {
+            'amenity': 'restaurant',
+            'diet:halal': 'yes',
+            'name': 'Кафе',
+          },
+        },
+        {'type': 'node', 'id': 9, 'tags': {}},
+      ],
+    });
+    expect(places.length, 2);
+    expect(places.first.kind, PlaceKind.mosque);
+    expect(places.first.osmId, 'way/7');
+    expect(places.last.kind, PlaceKind.halal);
+  });
+
   test('источники хадисов переводятся', () {
     expect(
       L10n('en').source('Ибн Маджа, ад-Даракутни'),

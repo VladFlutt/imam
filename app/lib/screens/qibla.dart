@@ -8,6 +8,7 @@ import 'package:flutter_compass/flutter_compass.dart';
 
 import '../app_state.dart';
 import '../l10n.dart';
+import '../services/compass/web_compass.dart';
 import '../services/prayer.dart';
 import '../theme.dart';
 
@@ -27,7 +28,9 @@ class _QiblaScreenState extends State<QiblaScreen> {
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
 
-  StreamSubscription<CompassEvent>? _sub;
+  StreamSubscription<Object>? _sub;
+  bool _webWaiting = false; // веб: ждём разрешения (iOS) или первых данных
+  bool _webNoSensor = false;
   double? _heading; // куда смотрит верх телефона, градусы от севера
   double? _accuracy;
   bool _wasAligned = false;
@@ -37,26 +40,59 @@ class _QiblaScreenState extends State<QiblaScreen> {
     super.initState();
     if (_sensorPlatform) {
       _sub = FlutterCompass.events?.listen((e) {
-        if (!mounted || e.heading == null) return;
-        // Держим угол непрерывным, чтобы при переходе 359° → 0° циферблат
-        // не делал полный оборот.
-        final prev = _heading;
-        final raw = (e.heading! + 360) % 360;
-        final next = prev == null ? raw : prev + _delta(raw, prev % 360);
-        final aligned =
-            _delta(
-              PrayerService.qibla(AppScope.read(context)),
-              next % 360,
-            ).abs() <
-            5;
-        if (aligned && !_wasAligned) HapticFeedback.mediumImpact();
-        _wasAligned = aligned;
-        setState(() {
-          _heading = next;
-          _accuracy = e.accuracy;
-        });
+        if (e.heading != null) _onHeading(e.heading!, e.accuracy);
       });
+    } else if (kIsWeb && WebCompass.supported) {
+      // Слушаем сразу: в Chrome на Android данные идут без запроса. Если
+      // браузер требует разрешения (Safari на iPhone), покажем кнопку.
+      _startWeb(quiet: WebCompass.needsPermission);
     }
+  }
+
+  /// Веб: подписка на датчик ориентации. Если за 3 с данных нет —
+  /// это компьютер или браузер без компаса.
+  void _startWeb({bool quiet = false}) {
+    _sub?.cancel();
+    _webWaiting = !quiet;
+    _webNoSensor = false;
+    if (mounted) setState(() {});
+    _sub = WebCompass.headings().listen((h) {
+      _webWaiting = false;
+      _onHeading(h, null);
+    });
+    if (quiet) return; // ждём нажатия кнопки
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && _heading == null) {
+        setState(() {
+          _webWaiting = false;
+          _webNoSensor = true;
+        });
+      }
+    });
+  }
+
+  Future<void> _enableWeb() async {
+    // Даже при отказе слушаем: часть браузеров отдаёт данные и так.
+    await WebCompass.requestPermission();
+    if (mounted) _startWeb();
+  }
+
+  void _onHeading(double heading, double? accuracy) {
+    if (!mounted) return;
+    // Держим угол непрерывным, чтобы при переходе 359° → 0° циферблат
+    // не делал полный оборот.
+    final prev = _heading;
+    final raw = (heading + 360) % 360;
+    final next = prev == null ? raw : prev + _delta(raw, prev % 360);
+    final aligned =
+        _delta(PrayerService.qibla(AppScope.read(context)), next % 360).abs() <
+        5;
+    if (aligned && !_wasAligned) HapticFeedback.mediumImpact();
+    _wasAligned = aligned;
+    setState(() {
+      _heading = next;
+      _accuracy = accuracy;
+    });
   }
 
   @override
@@ -143,6 +179,23 @@ class _QiblaScreenState extends State<QiblaScreen> {
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall,
           ),
+          if (kIsWeb && heading == null) ...[
+            const SizedBox(height: 12),
+            if (_webNoSensor)
+              Text(
+                l.t('compass_unavailable'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              )
+            else if (WebCompass.needsPermission && !_webWaiting)
+              Center(
+                child: FilledButton.icon(
+                  onPressed: _enableWeb,
+                  icon: const Icon(Icons.explore_outlined),
+                  label: Text(l.t('compass_enable')),
+                ),
+              ),
+          ],
           if (heading != null && poor) ...[
             const SizedBox(height: 8),
             Text(

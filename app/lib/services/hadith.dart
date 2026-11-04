@@ -20,25 +20,43 @@ class Hadith {
   final String source; // по-русски, переводится через L10n.source
   final Map<String, String>? note;
 
-  /// Перевод для языка интерфейса: английский для en, без перевода для ar,
-  /// русский для остальных (переводы на языки СНГ пока не готовы).
+  /// Переводы на языки СНГ: язык → (заголовок, текст, пояснение).
+  final Map<String, ({String title, String text, String? note})> local = {};
+
+  /// Есть ли собственный перевод на этот язык (иначе показываем русский).
+  bool hasOwn(String lang) =>
+      lang == 'ru' || lang == 'en' || local.containsKey(lang);
+
+  /// Перевод для языка интерфейса: без перевода для ar, свой перевод, если
+  /// он есть, иначе русский.
   String? translation(String lang) => switch (lang) {
     'ar' => null,
     'en' => en,
-    _ => ru,
+    _ => local[lang]?.text ?? ru,
   };
 
-  String titleFor(String lang) => lang == 'en' ? title['en']! : title['ru']!;
+  String titleFor(String lang) => switch (lang) {
+    'en' => title['en']!,
+    _ => local[lang]?.title ?? title['ru']!,
+  };
+
+  String? noteFor(String lang) {
+    if (note == null || lang == 'ar') return null;
+    if (lang == 'en') return note!['en'];
+    return local[lang]?.note ?? note!['ru'];
+  }
 }
 
 /// «Сорок хадисов» имама ан-Навави (42 хадиса).
 /// Арабский текст: пакет @kazishariar/nawawi-40-hadith-data (CC BY 4.0).
-/// Переводы на русский и английский подготовлены редакцией приложения
-/// и до релиза проходят проверку имамом.
+/// Переводы на русский, английский и языки СНГ (nawawi_<язык>.json)
+/// подготовлены редакцией приложения и до релиза проходят проверку имамом.
 class HadithRepo {
   HadithRepo._();
   static final instance = HadithRepo._();
   List<Hadith>? _items;
+
+  static const translations = ['uz', 'kk', 'tt', 'ky', 'tg', 'az'];
 
   bool get loaded => _items != null;
   List<Hadith> get items => _items ?? const [];
@@ -60,5 +78,21 @@ class HadithRepo {
           (h['note'] as Map?)?.cast<String, String>(),
         ),
     ];
+    for (final lang in translations) {
+      final list =
+          jsonDecode(
+                await rootBundle.loadString('assets/hadith/nawawi_$lang.json'),
+              )
+              as List;
+      for (final h in list) {
+        final i = (h['n'] as int) - 1;
+        if (i < 0 || i >= _items!.length) continue;
+        _items![i].local[lang] = (
+          title: h['title'] as String,
+          text: h['text'] as String,
+          note: h['note'] as String?,
+        );
+      }
+    }
   }
 }
