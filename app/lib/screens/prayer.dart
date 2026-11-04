@@ -19,7 +19,7 @@ class PrayerScreen extends StatelessWidget {
     final today = PrayerService.forDate(s, now);
     final next = PrayerService.next(s);
     final scheme = Theme.of(context).colorScheme;
-    final methodName = methodLabel(s.method);
+    final methodName = methodLabel(s.method, l.lang);
 
     return Scaffold(
       appBar: AppBar(
@@ -158,8 +158,12 @@ class PrayerScreen extends StatelessWidget {
   };
 }
 
-String methodLabel(PrayerMethod m) => switch (m) {
-  PrayerMethod.russia => 'ДУМ РФ (16° / 15°)',
+String methodLabel(PrayerMethod m, String lang) => switch (m) {
+  PrayerMethod.russia => switch (lang) {
+    'ar' => 'الإدارة الدينية لمسلمي روسيا (16° / 15°)',
+    'en' || 'uz' || 'az' => 'Russia, SAMR (16° / 15°)',
+    _ => 'ДУМ РФ (16° / 15°)',
+  },
   PrayerMethod.muslimWorldLeague => 'Muslim World League',
   PrayerMethod.ummAlQura => 'Umm al-Qura',
   PrayerMethod.egyptian => 'Egyptian Authority',

@@ -83,6 +83,13 @@ class AppState extends ChangeNotifier {
   bool get arabicDigits => _prefs.getBool('arDigits') ?? false;
   set arabicDigits(bool v) => _set(() => _prefs.setBool('arDigits', v));
 
+  bool get azanEnabled => _prefs.getBool('azan') ?? false;
+  set azanEnabled(bool v) => _set(() => _prefs.setBool('azan', v));
+
+  /// Всё, от чего зависят время и текст напоминаний о намазе.
+  String get azanSignature =>
+      '$azanEnabled|$lang|$cityId|$useGps|$lat|$lng|$utcOffset|${method.name}|$hanafi';
+
   bool get kidsMode => _prefs.getBool('kids') ?? false;
   set kidsMode(bool v) => _set(() => _prefs.setBool('kids', v));
 
@@ -131,4 +138,8 @@ class AppScope extends InheritedNotifier<AppState> {
 
   static AppState of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<AppScope>()!.notifier!;
+
+  /// Без подписки на изменения — для обработчиков событий.
+  static AppState read(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<AppScope>()!.notifier!;
 }

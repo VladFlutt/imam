@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import '../app_state.dart';
 import '../data/cities.dart';
 import '../l10n.dart';
+import '../services/notifications.dart';
 import '../services/quran.dart';
 import 'prayer.dart';
 
@@ -96,12 +97,12 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.calculate_outlined),
             title: Text(l.t('method')),
-            subtitle: Text(methodLabel(s.method)),
+            subtitle: Text(methodLabel(s.method, l.lang)),
             onTap: () => _pick<PrayerMethod>(
               context,
               l.t('method'),
               PrayerMethod.values,
-              methodLabel,
+              (m) => methodLabel(m, l.lang),
               s.method,
               (v) => s.method = v,
             ),
@@ -139,6 +140,29 @@ class SettingsScreen extends StatelessWidget {
               value: s.arabicDigits,
               onChanged: (v) => s.arabicDigits = v,
             ),
+          SwitchListTile(
+            secondary: const Icon(Icons.notifications_active_outlined),
+            title: Text(l.t('azan_notify')),
+            subtitle: Text(
+              AzanNotifications.supported
+                  ? l.t('azan_notify_sub')
+                  : l.t('azan_mobile_only'),
+            ),
+            value: s.azanEnabled,
+            onChanged: AzanNotifications.supported
+                ? (v) async {
+                    if (v && !await AzanNotifications.requestPermission()) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l.t('azan_denied'))),
+                        );
+                      }
+                      return;
+                    }
+                    s.azanEnabled = v;
+                  }
+                : null,
+          ),
           SwitchListTile(
             secondary: const Icon(Icons.child_care),
             title: Text(l.t('kids_mode')),

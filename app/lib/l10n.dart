@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import 'data/content_cis.dart';
 import 'l10n_cis.dart';
 
 /// Простая локализация на трёх языках без кодогенерации.
@@ -56,9 +57,33 @@ class L10n {
   /// Редакционный контент (советы, описания дат) пока есть на ru/en/ar.
   String get contentLang =>
       const {'ru', 'en', 'ar'}.contains(lang) ? lang : 'ru';
-  String tr(Map<String, String> m) => m[contentLang] ?? m['ru'] ?? '';
+  String tr(Map<String, String> m) {
+    if (m.containsKey(lang)) return m[lang]!;
+    final cis = cisContent[m['ru']]?[lang];
+    return cis ?? m[contentLang] ?? m['ru'] ?? '';
+  }
 
   bool get isRtl => lang == 'ar';
+
+  /// Языки на латинице: для них — латинская транслитерация и названия городов.
+  bool get latinScript => const {'en', 'uz', 'az'}.contains(lang);
+
+  /// Транслитерация дуа (в арабском интерфейсе не показываем).
+  String? translit(String cyr) => switch (lang) {
+    'ar' => null,
+    _ when latinScript => latinTranslit[cyr] ?? cyr,
+    _ => cyr,
+  };
+
+  /// «аль-Бухари 1, Муслим 1907» на языке интерфейса.
+  String source(String s) {
+    if (lang == 'ru') return s;
+    var out = s;
+    hadithCollections.forEach((ru, names) {
+      out = out.replaceAll(ru, names[lang] ?? ru);
+    });
+    return lang == 'ar' ? out.replaceAll(',', '،') : out;
+  }
 
   String t(String key) =>
       cisStrings[lang]?[key] ??
@@ -101,6 +126,59 @@ class L10n {
     },
     'in_fmt': {'ru': 'через {t}', 'en': 'in {t}', 'ar': 'بعد {t}'},
     'content_note': {'ru': '', 'en': '', 'ar': ''},
+    'qibla_live': {
+      'ru':
+          'Держите телефон горизонтально и поворачивайтесь, пока золотая стрелка не окажется вверху.',
+      'en':
+          'Hold the phone flat and turn until the gold arrow points to the top.',
+      'ar': 'أمسك الهاتف أفقياً واستدر حتى يشير السهم الذهبي إلى الأعلى.',
+    },
+    'qibla_aligned': {
+      'ru': 'Вы смотрите на Киблу',
+      'en': 'You are facing the Qibla',
+      'ar': 'أنت متجه إلى القبلة',
+    },
+    'qibla_calibrate': {
+      'ru':
+          'Если стрелка скачет, поводите телефоном восьмёркой и отойдите от металла и магнитов.',
+      'en':
+          'If the arrow jumps, move the phone in a figure eight and keep away from metal and magnets.',
+      'ar':
+          'إذا اضطرب السهم فحرّك الهاتف على شكل الرقم ثمانية وابتعد عن المعادن والمغناطيس.',
+    },
+    'azan_notify': {
+      'ru': 'Уведомления о намазе',
+      'en': 'Prayer notifications',
+      'ar': 'تنبيهات الصلاة',
+    },
+    'azan_notify_sub': {
+      'ru':
+          'В начале времени каждого намаза, на месяц вперёд (на iPhone — на 12 дней). Обновляются при открытии приложения.',
+      'en':
+          'At the start of each prayer time, a month ahead (12 days on iPhone). Refreshed whenever you open the app.',
+      'ar':
+          'عند دخول وقت كل صلاة لشهر قادم (12 يوماً على آيفون)، وتُحدَّث عند فتح التطبيق.',
+    },
+    'azan_renew': {
+      'ru': 'Откройте приложение, чтобы продлить напоминания о намазе.',
+      'en': 'Open the app to keep your prayer reminders going.',
+      'ar': 'افتح التطبيق لتجديد تنبيهات الصلاة.',
+    },
+    'azan_mobile_only': {
+      'ru': 'Доступно в мобильном приложении',
+      'en': 'Available in the mobile app',
+      'ar': 'متاح في تطبيق الهاتف',
+    },
+    'azan_denied': {
+      'ru': 'Разрешите уведомления для приложения в настройках телефона.',
+      'en': 'Allow notifications for the app in your phone settings.',
+      'ar': 'اسمح بالإشعارات للتطبيق من إعدادات الهاتف.',
+    },
+    'azan_title': {
+      'ru': 'Время намаза: {p}',
+      'en': 'Prayer time: {p}',
+      'ar': 'حان وقت صلاة {p}',
+    },
     'h': {'ru': 'ч', 'en': 'h', 'ar': 'س'},
     'min': {'ru': 'мин', 'en': 'min', 'ar': 'د'},
     'ayah_of_day': {

@@ -114,16 +114,18 @@ class _DuasScreenState extends State<DuasScreen> {
                                   style: arabicStyle(context, size: 22),
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                d.translit!,
-                                style: TextStyle(
-                                  fontStyle: FontStyle.italic,
-                                  color: scheme.onSurface.withValues(
-                                    alpha: 0.7,
+                              if (l.translit(d.translit!) case final tl?) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  tl,
+                                  style: TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    color: scheme.onSurface.withValues(
+                                      alpha: 0.7,
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                               const SizedBox(height: 6),
                               Text(
                                 l.tr(d.text!),
@@ -131,7 +133,7 @@ class _DuasScreenState extends State<DuasScreen> {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                d.source!,
+                                l.source(d.source!),
                                 style: Theme.of(context).textTheme.labelMedium
                                     ?.copyWith(color: scheme.primary),
                               ),

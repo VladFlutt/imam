@@ -104,7 +104,11 @@ class _QuranScreenState extends State<QuranScreen> {
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
             subtitle: Text(
-              '${l.lang == 'ar' ? '' : '${l.lang == 'en' ? su.en : su.ru} · '}'
+              '${switch (l.lang) {
+                'en' => '${su.en} · ',
+                'ru' => '${su.ru} · ',
+                _ => '',
+              }}'
               '${l.t(su.meccan ? 'meccan' : 'medinan')} · ${s.num('${su.verses.length}')} ${l.t('ayahs')}',
             ),
             trailing: Text(

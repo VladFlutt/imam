@@ -100,7 +100,21 @@ const cisStrings = <String, Map<String, String>>{
         'гыйнвар,февраль,март,апрель,май,июнь,июль,август,сентябрь,октябрь,ноябрь,декабрь',
     'weekdays': 'Дүшәмбе,Сишәмбе,Чәршәмбе,Пәнҗешәмбе,Җомга,Шимбә,Якшәмбе',
     'ah': 'һ.',
-    'content_note': 'Көн киңәшләре һәм дога аңлатмалары әлегә рус телендә.',
+    'qibla_live':
+        'Телефонны горизонталь тотыгыз һәм алтын ук өскә күрсәткәнче борылыгыз.',
+    'qibla_aligned': 'Сез Кыйблага карыйсыз',
+    'qibla_calibrate':
+        'Ук сикерсә, телефонны сигезле ясап хәрәкәтләндерегез һәм металл белән магнитлардан читкә китегез.',
+    'azan_notify': 'Намаз турында хәбәрләр',
+    'azan_notify_sub':
+        'Һәр намаз вакыты кергәч, бер ай алдан (iPhone’да 12 көн). Кушымтаны ачканда яңартыла.',
+    'azan_renew': 'Намаз турында хәбәрләрне озайту өчен кушымтаны ачыгыз.',
+    'azan_mobile_only': 'Мобиль кушымтада гына',
+    'azan_denied':
+        'Телефон көйләүләрендә кушымтага хәбәрләр җибәрергә рөхсәт итегез.',
+    'azan_title': 'Намаз вакыты: {p}',
+    'content_note':
+        'Киңәшләр һәм догалар тәрҗемәсе әлегә тел белгечләре тарафыннан тикшерелмәгән.',
   },
   'uz': {
     'app_name': 'Imom',
@@ -200,8 +214,21 @@ const cisStrings = <String, Map<String, String>>{
         'yanvar,fevral,mart,aprel,may,iyun,iyul,avgust,sentabr,oktabr,noyabr,dekabr',
     'weekdays': 'Dushanba,Seshanba,Chorshanba,Payshanba,Juma,Shanba,Yakshanba',
     'ah': 'h.',
+    'qibla_live':
+        'Telefonni gorizontal ushlang va oltin strelka tepaga qaramaguncha buriling.',
+    'qibla_aligned': 'Siz Qiblaga qarab turibsiz',
+    'qibla_calibrate':
+        'Strelka sakrasa, telefonni sakkiz shaklida harakatlantiring va metall hamda magnitlardan uzoqlashing.',
+    'azan_notify': 'Namoz eslatmalari',
+    'azan_notify_sub':
+        'Har bir namoz vaqti kirganda, bir oy oldindan (iPhone’da 12 kun). Ilova ochilganda yangilanadi.',
+    'azan_renew': 'Namoz eslatmalarini uzaytirish uchun ilovani oching.',
+    'azan_mobile_only': 'Mobil ilovada mavjud',
+    'azan_denied':
+        'Telefon sozlamalarida ilovaga bildirishnomalarga ruxsat bering.',
+    'azan_title': 'Namoz vaqti: {p}',
     'content_note':
-        'Kun maslahatlari va duo izohlari hozircha rus tilida. Qur’on tarjimasi — Muhammad Sodiq Muhammad Yusuf (kirill).',
+        'Maslahatlar va duolar tarjimasi hali ona tili egalari tomonidan tekshirilmagan. Qur’on tarjimasi — Muhammad Sodiq Muhammad Yusuf (kirill).',
   },
   'kk': {
     'app_name': 'Имам',
@@ -299,8 +326,21 @@ const cisStrings = <String, Map<String, String>>{
         'қаңтар,ақпан,наурыз,сәуір,мамыр,маусым,шілде,тамыз,қыркүйек,қазан,қараша,желтоқсан',
     'weekdays': 'Дүйсенбі,Сейсенбі,Сәрсенбі,Бейсенбі,Жұма,Сенбі,Жексенбі',
     'ah': 'һ.ж.',
+    'qibla_live':
+        'Телефонды көлденең ұстап, алтын көрсеткі жоғары қарағанша бұрылыңыз.',
+    'qibla_aligned': 'Сіз құбылаға қарап тұрсыз',
+    'qibla_calibrate':
+        'Көрсеткі секірсе, телефонды сегіз пішінімен қозғап, металл мен магниттерден алыстаңыз.',
+    'azan_notify': 'Намаз туралы хабарламалар',
+    'azan_notify_sub':
+        'Әр намаз уақыты кіргенде, бір ай алдын ала (iPhone-да 12 күн). Қосымшаны ашқанда жаңартылады.',
+    'azan_renew': 'Намаз хабарламаларын ұзарту үшін қосымшаны ашыңыз.',
+    'azan_mobile_only': 'Мобильді қосымшада қолжетімді',
+    'azan_denied':
+        'Телефон баптауларында қосымшаға хабарламаларға рұқсат беріңіз.',
+    'azan_title': 'Намаз уақыты: {p}',
     'content_note':
-        'Қазақ тіліндегі Құран аудармасы әзірге қосылмаған, орыс тіліндегі аударма көрсетіледі. Күн кеңестері де әзірге орыс тілінде.',
+        'Кеңестер мен дұғалардың аудармасын әлі тіл иелері тексермеген. Құран аудармасы әзірге орыс тілінде (Э. Кулиев).',
   },
   'ky': {
     'app_name': 'Имам',
@@ -398,8 +438,21 @@ const cisStrings = <String, Map<String, String>>{
         'январь,февраль,март,апрель,май,июнь,июль,август,сентябрь,октябрь,ноябрь,декабрь',
     'weekdays': 'Дүйшөмбү,Шейшемби,Шаршемби,Бейшемби,Жума,Ишемби,Жекшемби',
     'ah': 'х.',
+    'qibla_live':
+        'Телефонду горизонталдуу кармап, алтын жебе өйдө караганча буруңуз.',
+    'qibla_aligned': 'Сиз Кыбланы карап турасыз',
+    'qibla_calibrate':
+        'Жебе секирсе, телефонду сегиз түрүндө кыймылдатып, металл жана магниттерден алыстаңыз.',
+    'azan_notify': 'Намаз эскертмелери',
+    'azan_notify_sub':
+        'Ар бир намаздын убактысы киргенде, бир ай алдын ала (iPhone’до 12 күн). Тиркеме ачылганда жаңыланат.',
+    'azan_renew': 'Намаз эскертмелерин узартуу үчүн тиркемени ачыңыз.',
+    'azan_mobile_only': 'Мобилдик тиркемеде жеткиликтүү',
+    'azan_denied':
+        'Телефондун жөндөөлөрүндө тиркемеге эскертмелерге уруксат бериңиз.',
+    'azan_title': 'Намаз убактысы: {p}',
     'content_note':
-        'Кыргыз тилиндеги Куран котормосу азырынча кошула элек, орусча котормо көрсөтүлөт. Күндүн кеңештери да азырынча орус тилинде.',
+        'Кеңештер менен дубалардын котормосун азырынча тил ээлери текшере элек. Курандын котормосу азырынча орус тилинде (Э. Кулиев).',
   },
   'tg': {
     'app_name': 'Имом',
@@ -499,8 +552,21 @@ const cisStrings = <String, Map<String, String>>{
         'январ,феврал,март,апрел,май,июн,июл,август,сентябр,октябр,ноябр,декабр',
     'weekdays': 'Душанбе,Сешанбе,Чоршанбе,Панҷшанбе,Ҷумъа,Шанбе,Якшанбе',
     'ah': 'ҳ.',
+    'qibla_live':
+        'Телефонро уфуқӣ нигоҳ доред ва то он даме ки тири тиллоӣ ба боло ишора кунад, гардед.',
+    'qibla_aligned': 'Шумо рӯ ба Қибла ҳастед',
+    'qibla_calibrate':
+        'Агар тир ҷаҳад, телефонро ба шакли ҳашт ҳаракат диҳед ва аз металл ва оҳанрабо дур шавед.',
+    'azan_notify': 'Огоҳиномаҳои намоз',
+    'azan_notify_sub':
+        'Ҳангоми даромадани вақти ҳар намоз, барои як моҳ пеш (дар iPhone 12 рӯз). Ҳангоми кушодани барнома нав мешаванд.',
+    'azan_renew': 'Барои дароз кардани огоҳиномаҳои намоз барномаро кушоед.',
+    'azan_mobile_only': 'Дар барномаи мобилӣ дастрас аст',
+    'azan_denied':
+        'Дар танзимоти телефон ба барнома иҷозати огоҳиномаҳо диҳед.',
+    'azan_title': 'Вақти намоз: {p}',
     'content_note':
-        'Маслиҳатҳои рӯз ва шарҳи дуоҳо ҳоло ба забони русӣ. Тарҷумаи Қуръон — Абдулмуҳаммад Оятӣ.',
+        'Тарҷумаи маслиҳатҳо ва дуоҳо ҳанӯз аз ҷониби соҳибзабонон санҷида нашудааст.',
   },
   'az': {
     'app_name': 'İmam',
@@ -600,7 +666,19 @@ const cisStrings = <String, Map<String, String>>{
     'weekdays':
         'Bazar ertəsi,Çərşənbə axşamı,Çərşənbə,Cümə axşamı,Cümə,Şənbə,Bazar',
     'ah': 'h.',
+    'qibla_live':
+        'Telefonu üfüqi tutun və qızılı ox yuxarı baxana qədər dönün.',
+    'qibla_aligned': 'Siz Qibləyə baxırsınız',
+    'qibla_calibrate':
+        'Ox sıçrayırsa, telefonu səkkiz şəklində hərəkət etdirin və metal ilə maqnitlərdən uzaqlaşın.',
+    'azan_notify': 'Namaz bildirişləri',
+    'azan_notify_sub':
+        'Hər namaz vaxtı girəndə, bir ay əvvəlcədən (iPhone-da 12 gün). Tətbiq açılanda yenilənir.',
+    'azan_renew': 'Namaz bildirişlərini uzatmaq üçün tətbiqi açın.',
+    'azan_mobile_only': 'Mobil tətbiqdə mövcuddur',
+    'azan_denied': 'Telefon ayarlarında tətbiqə bildirişlərə icazə verin.',
+    'azan_title': 'Namaz vaxtı: {p}',
     'content_note':
-        'Günün tövsiyələri və dua izahları hələlik rus dilindədir. Quran tərcüməsi — Məmmədəliyev və Bünyadov.',
+        'Məsləhətlərin və duaların tərcüməsi hələ dil daşıyıcıları tərəfindən yoxlanılmayıb.',
   },
 };
