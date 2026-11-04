@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'assistant.dart' show aiEndpoint;
 
 enum PlaceKind { mosque, halal }
 
@@ -53,7 +54,11 @@ class Place {
 /// Мечети и халяль-места из OpenStreetMap (Overpass API, лицензия ODbL).
 /// На сервер уходят только границы видимой области карты, без данных пользователя.
 class PlacesService {
-  static const endpoint = 'https://overpass-api.de/api/interpreter';
+  /// Запасные серверы Overpass, если наш сервер недоступен.
+  static const mirrors = [
+    'https://overpass-api.de/api/interpreter',
+    'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  ];
 
   static Future<List<Place>> fetch(
     double south,
@@ -61,6 +66,41 @@ class PlacesService {
     double north,
     double east,
   ) async {
+    final data = await _query(south, west, north, east);
+    return parse(data);
+  }
+
+  /// Сначала наш сервер (перебирает зеркала Overpass и кеширует ответ на
+  /// сутки), затем зеркала напрямую.
+  static Future<Map<String, dynamic>> _query(
+    double south,
+    double west,
+    double north,
+    double east,
+  ) async {
+    Object? lastError;
+    if (aiEndpoint.isNotEmpty && north - south <= 1.5 && east - west <= 1.5) {
+      try {
+        final r = await http
+            .get(
+              Uri.parse('$aiEndpoint/places').replace(
+                queryParameters: {
+                  's': '$south',
+                  'w': '$west',
+                  'n': '$north',
+                  'e': '$east',
+                },
+              ),
+            )
+            .timeout(const Duration(seconds: 45));
+        if (r.statusCode == 200) {
+          return jsonDecode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+        }
+        lastError = Exception('places ${r.statusCode}');
+      } catch (e) {
+        lastError = e;
+      }
+    }
     final bbox = '$south,$west,$north,$east';
     final query =
         '''
@@ -73,11 +113,24 @@ class PlacesService {
 );
 out center tags 300;
 ''';
-    final r = await http
-        .post(Uri.parse(endpoint), body: {'data': query})
-        .timeout(const Duration(seconds: 30));
-    if (r.statusCode != 200) throw Exception('overpass ${r.statusCode}');
-    final data = jsonDecode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+    for (final url in mirrors) {
+      try {
+        final r = await http
+            .post(Uri.parse(url), body: {'data': query})
+            .timeout(const Duration(seconds: 30));
+        if (r.statusCode == 200) {
+          return jsonDecode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+        }
+        lastError = Exception('overpass ${r.statusCode}');
+      } catch (e) {
+        lastError = e;
+      }
+    }
+    throw lastError ?? Exception('overpass');
+  }
+
+  /// Разбор ответа Overpass.
+  static List<Place> parse(Map<String, dynamic> data) {
     final out = <Place>[];
     for (final e in data['elements'] as List) {
       final tags = (e['tags'] as Map?)?.cast<String, dynamic>() ?? {};

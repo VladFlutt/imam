@@ -9,9 +9,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../app_state.dart';
 import '../l10n.dart';
 import '../services/assistant.dart' show aiEndpoint;
+import '../services/location.dart';
 import '../services/places.dart';
 import '../services/hijri.dart' show gregorianDate;
 import '../theme.dart';
+import '../widgets/location_error.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -28,6 +30,29 @@ class _MapScreenState extends State<MapScreen> {
   bool _mosques = true, _halal = true;
   String? _centerKey;
   bool _loadedOnce = false;
+  bool _locating = false;
+
+  /// Кнопка «моё местоположение»: берём GPS и переносим карту.
+  /// Перенос и загрузку мест делает обработчик смены координат в build.
+  Future<void> _locateMe() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l = L10nScope.of(context);
+    final s = AppScope.read(context);
+    setState(() => _locating = true);
+    final r = await locate();
+    if (!mounted) return;
+    setState(() => _locating = false);
+    if (r.error != null) {
+      showLocationError(messenger, l, r.error!);
+      return;
+    }
+    final same = s.useGps && s.lat == r.lat && s.lng == r.lng;
+    s.setGps(r.lat!, r.lng!);
+    if (same) {
+      _map.move(LatLng(r.lat!, r.lng!), 14);
+      _load();
+    }
+  }
 
   Future<void> _load() async {
     final b = _map.camera.visibleBounds;
@@ -207,6 +232,22 @@ class _MapScreenState extends State<MapScreen> {
                 icon: const Icon(Icons.search),
                 label: Text(l.t('refresh_area')),
               ),
+            ),
+          ),
+          PositionedDirectional(
+            bottom: 132,
+            end: 12,
+            child: FloatingActionButton.small(
+              heroTag: 'locate',
+              tooltip: l.t('use_gps'),
+              onPressed: _locating ? null : _locateMe,
+              child: _locating
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.my_location),
             ),
           ),
           PositionedDirectional(

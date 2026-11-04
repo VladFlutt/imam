@@ -72,3 +72,6 @@ jobs:
             | tee ask.json
           echo
           grep -q '"status":"ok"' ask.json
+          echo "Мечети (Москва):"
+          curl -sS -D - -o places.json "$AI_URL/places?s=55.70&w=37.50&n=55.82&e=37.72" | grep -iE '^HTTP|x-source|x-cache' || true
+          python3 -c "import json;d=json.load(open('places.json'));print('объектов:',len(d.get('elements',[])), d.get('details',''))"

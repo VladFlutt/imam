@@ -101,3 +101,30 @@ test('заявка с запретными словами отклоняется
   const r = await suggestReq({ kind: 'halal', name: 'ИГИЛ', lat: 1, lng: 2 }, { GITHUB_TOKEN: 't', GITHUB_REPO: 'o/r' });
   assert.equal(r.status, 400);
 });
+
+import { fetchOverpass, parseBbox, places } from '../src/places.js';
+
+test('места: границы проверяются и округляются', () => {
+  const p = (q) => parseBbox(new URLSearchParams(q));
+  assert.deepEqual(p('s=55.701&w=37.501&n=55.81&e=37.71'), [55.7, 37.5, 55.82, 37.72]);
+  assert.equal(p('s=55&w=37&n=58&e=38'), null); // слишком большая область
+  assert.equal(p('s=x&w=37&n=55&e=38'), null);
+});
+
+test('места: при отказе первого зеркала берётся следующее', async () => {
+  const calls = [];
+  const fake = async (url) => {
+    calls.push(url);
+    if (calls.length === 1) return new Response('no', { status: 406 });
+    return Response.json({ elements: [{ type: 'node', id: 1, lat: 55.7, lon: 37.6, tags: { name: 'Мечеть' } }] });
+  };
+  const r = await fetchOverpass('q', fake, ['https://a.test/api', 'https://b.test/api']);
+  assert.equal(r.source, 'b.test');
+  assert.equal(r.elements.length, 1);
+});
+
+test('места: все зеркала недоступны → 503', async () => {
+  const fake = async () => new Response('busy', { status: 504 });
+  const res = await places(new Request('https://x/places?s=55.7&w=37.5&n=55.8&e=37.7'), {}, fake);
+  assert.equal(res.status, 503);
+});

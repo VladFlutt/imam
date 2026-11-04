@@ -126,6 +126,38 @@ class L10n {
     },
     'in_fmt': {'ru': 'через {t}', 'en': 'in {t}', 'ar': 'بعد {t}'},
     'content_note': {'ru': '', 'en': '', 'ar': ''},
+    'gps_off': {
+      'ru': 'Геолокация выключена. Включите её в настройках телефона.',
+      'en': 'Location is turned off. Turn it on in the phone settings.',
+      'ar': 'خدمة الموقع متوقفة. فعّلها من إعدادات الهاتف.',
+    },
+    'gps_denied_forever': {
+      'ru':
+          'Доступ к геолокации запрещён. Разрешите его в настройках приложения или браузера.',
+      'en':
+          'Location access is blocked. Allow it in the app or browser settings.',
+      'ar': 'تم حظر الوصول إلى الموقع. اسمح به من إعدادات التطبيق أو المتصفح.',
+    },
+    'gps_timeout': {
+      'ru':
+          'Не удалось определить местоположение. Попробуйте ещё раз или выберите город.',
+      'en': 'Could not determine your location. Try again or pick a city.',
+      'ar': 'تعذّر تحديد موقعك. حاول مرة أخرى أو اختر مدينة.',
+    },
+    'open_settings': {'ru': 'Настройки', 'en': 'Settings', 'ar': 'الإعدادات'},
+    'compass_enable': {
+      'ru': 'Включить компас',
+      'en': 'Enable compass',
+      'ar': 'تشغيل البوصلة',
+    },
+    'compass_unavailable': {
+      'ru':
+          'Компас недоступен в этом браузере. Откройте приложение на телефоне или ориентируйтесь по градусам от севера.',
+      'en':
+          'The compass is not available in this browser. Open the app on a phone or use the degrees from north.',
+      'ar':
+          'البوصلة غير متاحة في هذا المتصفح. افتح التطبيق على الهاتف أو استخدم الدرجات من الشمال.',
+    },
     'suggest_place': {
       'ru': 'Предложить место',
       'en': 'Suggest a place',

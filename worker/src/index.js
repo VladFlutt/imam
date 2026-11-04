@@ -4,6 +4,7 @@
 // Тексты вопросов не логируются и не сохраняются.
 
 import { check } from './filter.js';
+import { places } from './places.js';
 
 const LANG_NAMES = {
   ru: 'русский', en: 'English', ar: 'العربية', tt: 'татарский', uz: 'узбекский (латиница)',
@@ -23,7 +24,7 @@ export const SYSTEM_PROMPT = (lang) => `Ты — помощник мусульм
 
 const CORS = {
   'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'POST, OPTIONS',
+  'access-control-allow-methods': 'GET, POST, OPTIONS',
   'access-control-allow-headers': 'content-type',
 };
 
@@ -187,6 +188,7 @@ export default {
     const url = new URL(request.url);
     if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
     if (url.pathname === '/health') return json({ ok: true });
+    if (url.pathname === '/places' && request.method === 'GET') return places(request, CORS);
     if (url.pathname === '/suggest' && request.method === 'POST') return suggest(request, env);
     if (url.pathname !== '/ask' || request.method !== 'POST') return json({ error: 'not found' }, 404);
 
