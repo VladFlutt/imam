@@ -6,6 +6,7 @@ import '../data/cities.dart';
 import '../l10n.dart';
 import '../services/notifications.dart';
 import '../services/quran.dart';
+import 'onboarding.dart';
 import 'prayer.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -168,6 +169,16 @@ class SettingsScreen extends StatelessWidget {
             title: Text(l.t('kids_mode')),
             value: s.kidsMode,
             onChanged: (v) => s.kidsMode = v,
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.waving_hand_outlined),
+            title: Text(l.t('onb_show_again')),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const OnboardingScreen(replay: true),
+              ),
+            ),
           ),
         ],
       ),

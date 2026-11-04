@@ -6,6 +6,7 @@ import 'l10n.dart';
 import 'screens/home.dart';
 import 'screens/map.dart';
 import 'screens/more.dart';
+import 'screens/onboarding.dart';
 import 'screens/prayer.dart';
 import 'screens/quran.dart';
 import 'services/notifications.dart';
@@ -68,7 +69,7 @@ class ImamApp extends StatelessWidget {
             child: child!,
           ),
         ),
-        home: const Shell(),
+        home: s.onboarded ? const Shell() : const OnboardingScreen(),
       ),
     );
   }
