@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'data/content_cis.dart';
 import 'l10n_cis.dart';
+import 'l10n_onboarding.dart';
 
 /// Простая локализация на трёх языках без кодогенерации.
 /// Ключи — английские идентификаторы, значения — ru / en / ar.
@@ -86,6 +87,7 @@ class L10n {
   }
 
   String t(String key) =>
+      onboardingStrings[lang]?[key] ??
       cisStrings[lang]?[key] ??
       _strings[key]?[lang] ??
       _strings[key]?['ru'] ??

@@ -37,6 +37,10 @@ class AppState extends ChangeNotifier {
 
   L10n get l10n => L10n(lang);
 
+  /// Знакомство с приложением пройдено: показываем его только при первом запуске.
+  bool get onboarded => _prefs.getBool('onboarded') ?? false;
+  set onboarded(bool v) => _set(() => _prefs.setBool('onboarded', v));
+
   /// Перевод Корана: явно выбранный или по языку интерфейса.
   String get quranTr => _prefs.getString('quranTr') ?? l10n.defaultQuranTr;
   set quranTr(String v) => _set(() => _prefs.setString('quranTr', v));
