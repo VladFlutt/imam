@@ -136,6 +136,15 @@ const cisStrings = <String, Map<String, String>>{
     'cert_until': 'кадәр',
     'cert_check': 'Сертификация органы сайтында тикшерү',
     'catalog_checked': 'Модератор тикшергән: {date}',
+    'compass_enable': 'Компасны кабызу',
+    'compass_unavailable':
+        'Бу браузерда компас юк. Кушымтаны телефонда ачыгыз яки төньяктан градуслар буенча юнәлеш алыгыз.',
+    'gps_off': 'Геолокация сүндерелгән. Аны телефон көйләүләрендә кабызыгыз.',
+    'gps_denied_forever':
+        'Геолокациягә керү тыелган. Аны кушымта яки браузер көйләүләрендә рөхсәт итегез.',
+    'gps_timeout':
+        'Урынны билгеләп булмады. Кабат тырышып карагыз яки шәһәр сайлагыз.',
+    'open_settings': 'Көйләүләр',
     'content_note':
         'Киңәшләр һәм догалар тәрҗемәсе әлегә тел белгечләре тарафыннан тикшерелмәгән.',
   },
@@ -273,6 +282,15 @@ const cisStrings = <String, Map<String, String>>{
     'cert_until': 'gacha',
     'cert_check': 'Sertifikatlash organi saytida tekshirish',
     'catalog_checked': 'Moderator tekshirgan: {date}',
+    'compass_enable': 'Kompasni yoqish',
+    'compass_unavailable':
+        'Bu brauzerda kompas mavjud emas. Ilovani telefonda oching yoki shimoldan graduslar bo‘yicha mo‘ljal oling.',
+    'gps_off': 'Geolokatsiya o‘chirilgan. Uni telefon sozlamalarida yoqing.',
+    'gps_denied_forever':
+        'Geolokatsiyaga ruxsat berilmagan. Uni ilova yoki brauzer sozlamalarida yoqing.',
+    'gps_timeout':
+        'Joylashuvni aniqlab bo‘lmadi. Qayta urinib ko‘ring yoki shaharni tanlang.',
+    'open_settings': 'Sozlamalar',
     'content_note':
         'Maslahatlar va duolar tarjimasi hali ona tili egalari tomonidan tekshirilmagan. Qur’on tarjimasi — Muhammad Sodiq Muhammad Yusuf (kirill).',
   },
@@ -408,6 +426,15 @@ const cisStrings = <String, Map<String, String>>{
     'cert_until': 'дейін',
     'cert_check': 'Сертификаттау органының сайтында тексеру',
     'catalog_checked': 'Модератор тексерген: {date}',
+    'compass_enable': 'Компасты қосу',
+    'compass_unavailable':
+        'Бұл браузерде компас қолжетімсіз. Қосымшаны телефонда ашыңыз немесе солтүстіктен градус бойынша бағдарлаңыз.',
+    'gps_off': 'Геолокация өшірулі. Оны телефон баптауларынан қосыңыз.',
+    'gps_denied_forever':
+        'Геолокацияға рұқсат жоқ. Оны қосымша немесе браузер баптауларынан рұқсат етіңіз.',
+    'gps_timeout':
+        'Орналасқан жерді анықтау мүмкін болмады. Қайталап көріңіз немесе қаланы таңдаңыз.',
+    'open_settings': 'Баптаулар',
     'content_note':
         'Кеңестер мен дұғалардың аудармасын әлі тіл иелері тексермеген. Құран аудармасы әзірге орыс тілінде (Э. Кулиев).',
   },
@@ -543,6 +570,15 @@ const cisStrings = <String, Map<String, String>>{
     'cert_until': 'чейин',
     'cert_check': 'Сертификациялоо органынын сайтында текшерүү',
     'catalog_checked': 'Модератор текшерген: {date}',
+    'compass_enable': 'Компасты күйгүзүү',
+    'compass_unavailable':
+        'Бул браузерде компас жеткиликсиз. Колдонмону телефондо ачыңыз же түндүктөн градус боюнча багыт алыңыз.',
+    'gps_off': 'Геолокация өчүрүлгөн. Аны телефондун жөндөөлөрүнөн күйгүзүңүз.',
+    'gps_denied_forever':
+        'Геолокацияга уруксат жок. Аны колдонмо же браузер жөндөөлөрүнөн уруксат бериңиз.',
+    'gps_timeout':
+        'Жайгашкан жерди аныктоо мүмкүн болбоду. Кайра аракет кылыңыз же шаарды тандаңыз.',
+    'open_settings': 'Жөндөөлөр',
     'content_note':
         'Кеңештер менен дубалардын котормосун азырынча тил ээлери текшере элек. Курандын котормосу азырынча орус тилинде (Э. Кулиев).',
   },
@@ -680,6 +716,15 @@ const cisStrings = <String, Map<String, String>>{
     'cert_until': 'то',
     'cert_check': 'Дар сомонаи мақоми сертификатсия санҷед',
     'catalog_checked': 'Модератор санҷидааст: {date}',
+    'compass_enable': 'Фаъол кардани қутбнамо',
+    'compass_unavailable':
+        'Дар ин браузер қутбнамо дастрас нест. Барномаро дар телефон кушоед ё аз рӯи дараҷаҳо аз шимол самтро муайян кунед.',
+    'gps_off': 'Геолокатсия хомӯш аст. Онро дар танзимоти телефон фаъол кунед.',
+    'gps_denied_forever':
+        'Дастрасӣ ба геолокатсия манъ аст. Онро дар танзимоти барнома ё браузер иҷозат диҳед.',
+    'gps_timeout':
+        'Ҷойгиршавиро муайян кардан натавонистем. Боз кӯшиш кунед ё шаҳрро интихоб кунед.',
+    'open_settings': 'Танзимот',
     'content_note':
         'Тарҷумаи маслиҳатҳо ва дуоҳо ҳанӯз аз ҷониби соҳибзабонон санҷида нашудааст.',
   },
@@ -816,6 +861,16 @@ const cisStrings = <String, Map<String, String>>{
     'cert_until': 'qədər',
     'cert_check': 'Sertifikatlaşdırma orqanının saytında yoxla',
     'catalog_checked': 'Moderator yoxlayıb: {date}',
+    'compass_enable': 'Kompası aktivləşdir',
+    'compass_unavailable':
+        'Bu brauzerdə kompas mövcud deyil. Tətbiqi telefonda açın və ya şimaldan dərəcələrə görə istiqamət götürün.',
+    'gps_off':
+        'Məkan xidməti söndürülüb. Onu telefonun ayarlarında aktivləşdirin.',
+    'gps_denied_forever':
+        'Məkana giriş qadağandır. Onu tətbiqin və ya brauzerin ayarlarında icazə verin.',
+    'gps_timeout':
+        'Məkanı müəyyən etmək mümkün olmadı. Yenidən cəhd edin və ya şəhər seçin.',
+    'open_settings': 'Ayarlar',
     'content_note':
         'Məsləhətlərin və duaların tərcüməsi hələ dil daşıyıcıları tərəfindən yoxlanılmayıb.',
   },

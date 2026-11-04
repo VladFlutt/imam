@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 
 import '../app_state.dart';
 import '../data/cities.dart';
 import '../l10n.dart';
+import '../services/location.dart';
 import '../services/notifications.dart';
 import '../services/quran.dart';
+import '../widgets/location_error.dart';
 import 'onboarding.dart';
 import 'prayer.dart';
 
@@ -74,24 +75,12 @@ class SettingsScreen extends StatelessWidget {
             title: Text(l.t('use_gps')),
             onTap: () async {
               final messenger = ScaffoldMessenger.of(context);
-              try {
-                var perm = await Geolocator.checkPermission();
-                if (perm == LocationPermission.denied)
-                  perm = await Geolocator.requestPermission();
-                if (perm == LocationPermission.denied ||
-                    perm == LocationPermission.deniedForever)
-                  throw Exception();
-                final p = await Geolocator.getCurrentPosition(
-                  locationSettings: const LocationSettings(
-                    accuracy: LocationAccuracy.low,
-                  ),
-                );
-                s.setGps(p.latitude, p.longitude);
-              } catch (_) {
-                messenger.showSnackBar(
-                  SnackBar(content: Text(l.t('gps_denied'))),
-                );
+              final r = await locate();
+              if (r.error == null) {
+                s.setGps(r.lat!, r.lng!);
+                return;
               }
+              showLocationError(messenger, l, r.error!);
             },
           ),
           const Divider(),
