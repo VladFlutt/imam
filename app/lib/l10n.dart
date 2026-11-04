@@ -153,10 +153,16 @@ class L10n {
     },
     'azan_notify_sub': {
       'ru':
-          'В начале времени каждого намаза, на 7 дней вперёд. Обновляются при открытии приложения.',
+          'В начале времени каждого намаза, на месяц вперёд (на iPhone — на 12 дней). Обновляются при открытии приложения.',
       'en':
-          'At the start of each prayer time, 7 days ahead. Refreshed whenever you open the app.',
-      'ar': 'عند دخول وقت كل صلاة لسبعة أيام قادمة، وتُحدَّث عند فتح التطبيق.',
+          'At the start of each prayer time, a month ahead (12 days on iPhone). Refreshed whenever you open the app.',
+      'ar':
+          'عند دخول وقت كل صلاة لشهر قادم (12 يوماً على آيفون)، وتُحدَّث عند فتح التطبيق.',
+    },
+    'azan_renew': {
+      'ru': 'Откройте приложение, чтобы продлить напоминания о намазе.',
+      'en': 'Open the app to keep your prayer reminders going.',
+      'ar': 'افتح التطبيق لتجديد تنبيهات الصلاة.',
     },
     'azan_mobile_only': {
       'ru': 'Доступно в мобильном приложении',

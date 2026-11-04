@@ -107,7 +107,8 @@ const cisStrings = <String, Map<String, String>>{
         'Ук сикерсә, телефонны сигезле ясап хәрәкәтләндерегез һәм металл белән магнитлардан читкә китегез.',
     'azan_notify': 'Намаз турында хәбәрләр',
     'azan_notify_sub':
-        'Һәр намаз вакыты кергәч, 7 көн алдан. Кушымтаны ачканда яңартыла.',
+        'Һәр намаз вакыты кергәч, бер ай алдан (iPhone’да 12 көн). Кушымтаны ачканда яңартыла.',
+    'azan_renew': 'Намаз турында хәбәрләрне озайту өчен кушымтаны ачыгыз.',
     'azan_mobile_only': 'Мобиль кушымтада гына',
     'azan_denied':
         'Телефон көйләүләрендә кушымтага хәбәрләр җибәрергә рөхсәт итегез.',
@@ -220,7 +221,8 @@ const cisStrings = <String, Map<String, String>>{
         'Strelka sakrasa, telefonni sakkiz shaklida harakatlantiring va metall hamda magnitlardan uzoqlashing.',
     'azan_notify': 'Namoz eslatmalari',
     'azan_notify_sub':
-        'Har bir namoz vaqti kirganda, 7 kun oldindan. Ilova ochilganda yangilanadi.',
+        'Har bir namoz vaqti kirganda, bir oy oldindan (iPhone’da 12 kun). Ilova ochilganda yangilanadi.',
+    'azan_renew': 'Namoz eslatmalarini uzaytirish uchun ilovani oching.',
     'azan_mobile_only': 'Mobil ilovada mavjud',
     'azan_denied':
         'Telefon sozlamalarida ilovaga bildirishnomalarga ruxsat bering.',
@@ -331,7 +333,8 @@ const cisStrings = <String, Map<String, String>>{
         'Көрсеткі секірсе, телефонды сегіз пішінімен қозғап, металл мен магниттерден алыстаңыз.',
     'azan_notify': 'Намаз туралы хабарламалар',
     'azan_notify_sub':
-        'Әр намаз уақыты кіргенде, 7 күн алдын ала. Қосымшаны ашқанда жаңартылады.',
+        'Әр намаз уақыты кіргенде, бір ай алдын ала (iPhone-да 12 күн). Қосымшаны ашқанда жаңартылады.',
+    'azan_renew': 'Намаз хабарламаларын ұзарту үшін қосымшаны ашыңыз.',
     'azan_mobile_only': 'Мобильді қосымшада қолжетімді',
     'azan_denied':
         'Телефон баптауларында қосымшаға хабарламаларға рұқсат беріңіз.',
@@ -442,7 +445,8 @@ const cisStrings = <String, Map<String, String>>{
         'Жебе секирсе, телефонду сегиз түрүндө кыймылдатып, металл жана магниттерден алыстаңыз.',
     'azan_notify': 'Намаз эскертмелери',
     'azan_notify_sub':
-        'Ар бир намаздын убактысы киргенде, 7 күн алдын ала. Тиркеме ачылганда жаңыланат.',
+        'Ар бир намаздын убактысы киргенде, бир ай алдын ала (iPhone’до 12 күн). Тиркеме ачылганда жаңыланат.',
+    'azan_renew': 'Намаз эскертмелерин узартуу үчүн тиркемени ачыңыз.',
     'azan_mobile_only': 'Мобилдик тиркемеде жеткиликтүү',
     'azan_denied':
         'Телефондун жөндөөлөрүндө тиркемеге эскертмелерге уруксат бериңиз.',
@@ -555,7 +559,8 @@ const cisStrings = <String, Map<String, String>>{
         'Агар тир ҷаҳад, телефонро ба шакли ҳашт ҳаракат диҳед ва аз металл ва оҳанрабо дур шавед.',
     'azan_notify': 'Огоҳиномаҳои намоз',
     'azan_notify_sub':
-        'Ҳангоми даромадани вақти ҳар намоз, барои 7 рӯз пеш. Ҳангоми кушодани барнома нав мешаванд.',
+        'Ҳангоми даромадани вақти ҳар намоз, барои як моҳ пеш (дар iPhone 12 рӯз). Ҳангоми кушодани барнома нав мешаванд.',
+    'azan_renew': 'Барои дароз кардани огоҳиномаҳои намоз барномаро кушоед.',
     'azan_mobile_only': 'Дар барномаи мобилӣ дастрас аст',
     'azan_denied':
         'Дар танзимоти телефон ба барнома иҷозати огоҳиномаҳо диҳед.',
@@ -668,7 +673,8 @@ const cisStrings = <String, Map<String, String>>{
         'Ox sıçrayırsa, telefonu səkkiz şəklində hərəkət etdirin və metal ilə maqnitlərdən uzaqlaşın.',
     'azan_notify': 'Namaz bildirişləri',
     'azan_notify_sub':
-        'Hər namaz vaxtı girəndə, 7 gün əvvəlcədən. Tətbiq açılanda yenilənir.',
+        'Hər namaz vaxtı girəndə, bir ay əvvəlcədən (iPhone-da 12 gün). Tətbiq açılanda yenilənir.',
+    'azan_renew': 'Namaz bildirişlərini uzatmaq üçün tətbiqi açın.',
     'azan_mobile_only': 'Mobil tətbiqdə mövcuddur',
     'azan_denied': 'Telefon ayarlarında tətbiqə bildirişlərə icazə verin.',
     'azan_title': 'Namaz vaxtı: {p}',

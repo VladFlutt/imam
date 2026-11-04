@@ -8,13 +8,16 @@ import '../l10n.dart';
 import 'prayer.dart';
 
 /// Локальные напоминания о намазе (Android и iOS).
-/// Планируем на 7 дней вперёд (у iOS предел — 64 ожидающих уведомления)
-/// и перепланируем при каждом запуске и при смене места или метода расчёта.
+/// Android планирует на 30 дней вперёд, iOS — на 12 (предел iOS — 64 ожидающих
+/// уведомления: 12 × 5 намазов + напоминание продлить). Перепланируем при каждом
+/// запуске и при смене места или метода расчёта; за день до конца срока
+/// приходит напоминание открыть приложение.
 class AzanNotifications {
   AzanNotifications._();
   static final _plugin = FlutterLocalNotificationsPlugin();
   static bool _ready = false;
-  static const days = 7;
+  static int get days => defaultTargetPlatform == TargetPlatform.iOS ? 12 : 30;
+  static const _renewId = 9999;
 
   static bool get supported =>
       !kIsWeb &&
@@ -103,6 +106,16 @@ class AzanNotifications {
           );
         }
       }
+      // Срок напоминаний кончается — просим открыть приложение, чтобы продлить.
+      final renewAt = nowUtc.add(Duration(days: days - 1));
+      await _plugin.zonedSchedule(
+        id: _renewId,
+        scheduledDate: tz.TZDateTime.from(renewAt, tz.UTC),
+        notificationDetails: details,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        title: l.t('azan_notify'),
+        body: l.t('azan_renew'),
+      );
     } catch (e) {
       debugPrint('azan reschedule failed: $e');
     }
