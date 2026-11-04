@@ -6,38 +6,30 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Overpass variants
+      - name: Alternative sources
         shell: python
         run: |
           import json, time, urllib.request, urllib.parse
-          Q = '[out:json][timeout:25];(nwr["amenity"="place_of_worship"]["religion"="muslim"](55.70,37.50,55.82,37.72);nwr["diet:halal"~"^(yes|only)$"](55.70,37.50,55.82,37.72););out center tags 300;'
-          BUA = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36'
-          def go(url, ua, method='POST', ctype=True, accept=None):
-              data = urllib.parse.urlencode({'data': Q}).encode()
-              h = {'User-Agent': ua, 'Origin': 'https://imam-dusky.vercel.app', 'Referer': 'https://imam-dusky.vercel.app/'}
-              if accept: h['Accept'] = accept
-              if method == 'GET':
-                  req = urllib.request.Request(url + '?' + data.decode(), headers=h)
-              else:
-                  if ctype: h['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8'
-                  req = urllib.request.Request(url, data=data, headers=h, method='POST')
+          UA = 'imam-app/1.0 (+https://github.com/VladFlutt/imam)'
+          def get(url, data=None):
               t = time.time()
+              req = urllib.request.Request(url, data=data, headers={'User-Agent': UA, 'Origin': 'https://imam-dusky.vercel.app'})
               try:
-                  r = urllib.request.urlopen(req, timeout=45)
-                  body = r.read(); code = r.status; hdr = r.headers
+                  r = urllib.request.urlopen(req, timeout=40); b = r.read(); c = r.status; h = r.headers
               except urllib.error.HTTPError as e:
-                  body = e.read(); code = e.code; hdr = e.headers
+                  b = e.read(); c = e.code; h = e.headers
               except Exception as e:
-                  print(f'{url} [{ua[:20]}] {method} -> {e!r}'); return
-              cors = hdr.get('Access-Control-Allow-Origin')
-              info = body[:120]
-              try:
-                  els = json.loads(body)['elements']; info = f'elements={len(els)} {[x.get("tags",{}).get("name") for x in els][:5]}'
-              except Exception: pass
-              print(f'{url} [{ua[:20]}] {method} -> {code} {time.time()-t:.1f}s cors={cors} {info}')
-          for ep in ['https://overpass-api.de/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.osm.jp/api/interpreter','https://overpass.kumi.systems/api/interpreter']:
-              go(ep, BUA)
-          go('https://overpass-api.de/api/interpreter', 'Dart/3.13 (dart:io)')
-          go('https://overpass-api.de/api/interpreter', 'imam-app/1.0 (+https://github.com/VladFlutt/imam)')
-          go('https://overpass-api.de/api/interpreter', BUA, 'GET')
-          go('https://overpass-api.de/api/interpreter', BUA, accept='*/*')
+                  print(url[:90], '->', repr(e)); return None
+              print(url[:90], '->', c, f'{time.time()-t:.1f}s cors=', h.get('Access-Control-Allow-Origin'))
+              try: return json.loads(b)
+              except Exception: print(b[:200]); return None
+          d = get('https://photon.komoot.io/api/?q=mosque&bbox=37.50,55.70,37.72,55.82&osm_tag=amenity:place_of_worship&limit=50')
+          if d: print(' photon', len(d['features']), [f['properties'].get('name') for f in d['features']][:6])
+          d = get('https://photon.komoot.io/api/?q=%D0%BC%D0%B5%D1%87%D0%B5%D1%82%D1%8C&bbox=37.50,55.70,37.72,55.82&limit=50')
+          if d: print(' photon ru', len(d['features']), [f['properties'].get('name') for f in d['features']][:6])
+          d = get('https://nominatim.openstreetmap.org/search?q=mosque&viewbox=37.50,55.82,37.72,55.70&bounded=1&format=jsonv2&limit=50&extratags=1')
+          if d is not None: print(' nominatim', len(d), [x.get('name') for x in d][:6])
+          Q = '[out:json][timeout:25];nwr["amenity"="place_of_worship"]["religion"="muslim"](55.70,37.50,55.82,37.72);out center tags 100;'
+          for ep in ['https://overpass-api.de/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter','https://overpass.private.coffee/api/interpreter']:
+              d = get(ep, urllib.parse.urlencode({'data': Q}).encode())
+              if d: print(' overpass', len(d.get('elements', [])))
