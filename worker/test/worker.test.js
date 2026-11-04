@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import worker, { cleanCitations, validate } from '../src/index.js';
+import worker, { cleanCitations, suggestionIssue, validate, validateSuggestion } from '../src/index.js';
 import { check } from '../src/filter.js';
 
 const ask = (body, env = {}) =>
@@ -56,4 +56,48 @@ test('цепочка провайдеров: падение первого → �
 test('нет провайдеров → 503 unavailable', async () => {
   const r = await ask({ question: 'о терпении', ayat: [{ ref: '2:153', text: 't' }] }, {});
   assert.equal(r.status, 'unavailable');
+});
+
+const suggestReq = (body, env = {}) =>
+  worker.fetch(new Request('https://x/suggest', { method: 'POST', body: JSON.stringify(body) }), env);
+
+test('заявка на место: валидация', () => {
+  const ok = { kind: 'halal', name: 'Кафе', lat: 55.75, lng: 37.61 };
+  assert.equal(validateSuggestion(ok), null);
+  assert.equal(validateSuggestion({ ...ok, kind: 'bar' }), 'kind');
+  assert.equal(validateSuggestion({ ...ok, lat: 100 }), 'coords');
+  assert.equal(validateSuggestion({ ...ok, osm: 'node/1; drop' }), 'osm');
+  assert.equal(validateSuggestion({ ...ok, comment: 'x'.repeat(501) }), 'comment');
+});
+
+test('заявка на место: упоминания и разметка обезврежены', () => {
+  const i = suggestionIssue({ kind: 'halal', name: '<b>Кафе</b> @someone', lat: 1, lng: 2, comment: '`код`' });
+  assert.ok(!i.body.includes('@someone'));
+  assert.ok(!i.body.includes('<b>'));
+  assert.ok(!i.body.includes('`код`'));
+  assert.deepEqual(i.labels, ['halal-place']);
+});
+
+test('заявка на место: без токена — 503, с токеном — issue', async () => {
+  const body = { kind: 'mosque', name: 'Мечеть', lat: 55.7, lng: 37.6 };
+  assert.equal((await suggestReq(body)).status, 503);
+  const realFetch = globalThis.fetch;
+  let sent;
+  globalThis.fetch = async (url, init) => {
+    sent = { url, body: JSON.parse(init.body) };
+    return new Response('{}', { status: 201 });
+  };
+  try {
+    const r = await suggestReq(body, { GITHUB_TOKEN: 't', GITHUB_REPO: 'o/r' });
+    assert.equal(r.status, 200);
+    assert.equal(sent.url, 'https://api.github.com/repos/o/r/issues');
+    assert.match(sent.body.title, /Мечеть/);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test('заявка с запретными словами отклоняется', async () => {
+  const r = await suggestReq({ kind: 'halal', name: 'ИГИЛ', lat: 1, lng: 2 }, { GITHUB_TOKEN: 't', GITHUB_REPO: 'o/r' });
+  assert.equal(r.status, 400);
 });

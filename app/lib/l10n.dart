@@ -126,6 +126,85 @@ class L10n {
     },
     'in_fmt': {'ru': 'через {t}', 'en': 'in {t}', 'ar': 'بعد {t}'},
     'content_note': {'ru': '', 'en': '', 'ar': ''},
+    'suggest_place': {
+      'ru': 'Предложить место',
+      'en': 'Suggest a place',
+      'ar': 'اقترح مكاناً',
+    },
+    'report_error': {
+      'ru': 'Сообщить об ошибке',
+      'en': 'Report a mistake',
+      'ar': 'الإبلاغ عن خطأ',
+    },
+    'suggest_hint': {
+      'ru':
+          'Место отметится в центре карты (крестик). Модератор проверит заявку и сертификат, прежде чем добавить место в каталог.',
+      'en':
+          'The place is marked at the centre of the map (the cross). A moderator checks the request and the certificate before adding it to the catalogue.',
+      'ar':
+          'يُحدَّد المكان في وسط الخريطة (العلامة +). يراجع المشرف الطلب والشهادة قبل إضافته إلى الدليل.',
+    },
+    'report_hint': {
+      'ru':
+          'Опишите, что не так: закрыто, другое время работы, нет сертификата, неверное место.',
+      'en':
+          'Describe what is wrong: closed, different hours, no certificate, wrong location.',
+      'ar': 'صف المشكلة: مغلق، أوقات عمل مختلفة، لا توجد شهادة، موقع خاطئ.',
+    },
+    'suggest_name': {'ru': 'Название', 'en': 'Name', 'ar': 'الاسم'},
+    'suggest_address': {'ru': 'Адрес', 'en': 'Address', 'ar': 'العنوان'},
+    'suggest_cert': {
+      'ru': 'Сертификат халяль: кто выдал, номер',
+      'en': 'Halal certificate: issuer and number',
+      'ar': 'شهادة الحلال: الجهة المانحة والرقم',
+    },
+    'suggest_comment': {'ru': 'Комментарий', 'en': 'Comment', 'ar': 'تعليق'},
+    'suggest_send': {
+      'ru': 'Отправить на проверку',
+      'en': 'Send for review',
+      'ar': 'أرسل للمراجعة',
+    },
+    'suggest_sent': {
+      'ru': 'Спасибо! Модератор проверит заявку.',
+      'en': 'Thank you! A moderator will review it.',
+      'ar': 'شكراً! سيراجع المشرف الطلب.',
+    },
+    'cert_badge': {
+      'ru': 'Сертификат халяль',
+      'en': 'Halal certified',
+      'ar': 'شهادة حلال',
+    },
+    'cert_expired': {
+      'ru': 'Срок сертификата истёк',
+      'en': 'Certificate expired',
+      'ar': 'انتهت صلاحية الشهادة',
+    },
+    'cert_until': {'ru': 'до', 'en': 'until', 'ar': 'حتى'},
+    'cert_check': {
+      'ru': 'Проверить на сайте органа сертификации',
+      'en': 'Verify with the certifier',
+      'ar': 'تحقق لدى جهة الإصدار',
+    },
+    'catalog_checked': {
+      'ru': 'Проверено модератором: {date}',
+      'en': 'Checked by a moderator: {date}',
+      'ar': 'راجعه المشرف: {date}',
+    },
+    'hadith40': {
+      'ru': '40 хадисов ан-Навави',
+      'en': 'An-Nawawi’s Forty Hadith',
+      'ar': 'الأربعون النووية',
+    },
+    'hadith_n': {'ru': 'Хадис {n}', 'en': 'Hadith {n}', 'ar': 'الحديث {n}'},
+    'hadith_review': {
+      'ru':
+          'Арабский текст по классическому сборнику имама ан-Навави. Перевод подготовлен редакцией и до выпуска приложения проходит проверку имамом. Смысл хадисов разъясняют учёные: с вопросами обращайтесь к имаму.',
+      'en':
+          'Arabic text from Imam an-Nawawi’s classical collection. The translation was prepared by the editors and is being checked by an imam before release. Scholars explain the meaning of hadith: please ask an imam.',
+      'ar':
+          'النص العربي من مجموع الإمام النووي. يُرجع في فهم الأحاديث وشرحها إلى أهل العلم.',
+    },
+    'hadith_ru_only': {'ru': '', 'en': '', 'ar': ''},
     'qibla_live': {
       'ru':
           'Держите телефон горизонтально и поворачивайтесь, пока золотая стрелка не окажется вверху.',

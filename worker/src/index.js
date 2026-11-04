@@ -111,11 +111,83 @@ async function overLimit(env, request) {
   return false;
 }
 
+// ---------- Заявки на места халяль и мечети ----------
+
+const OSM = /^(node|way|relation)\/\d{1,12}$/;
+
+export function validateSuggestion(b) {
+  if (!b || typeof b !== 'object') return 'body';
+  if (b.kind !== 'halal' && b.kind !== 'mosque') return 'kind';
+  if (typeof b.name !== 'string' || b.name.trim().length < 1 || b.name.length > 120) return 'name';
+  if (typeof b.lat !== 'number' || typeof b.lng !== 'number' || Math.abs(b.lat) > 90 || Math.abs(b.lng) > 180) return 'coords';
+  for (const k of ['address', 'certificate', 'comment']) {
+    if (b[k] !== undefined && (typeof b[k] !== 'string' || b[k].length > 500)) return k;
+  }
+  if (b.osm !== undefined && (typeof b.osm !== 'string' || !OSM.test(b.osm))) return 'osm';
+  return null;
+}
+
+// Пользовательский текст в issue: без упоминаний @, без HTML и разметки.
+const plain = (s = '') =>
+  String(s)
+    .replace(/[<>`]/g, '')
+    .replace(/@/g, '@\u200b')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+export function suggestionIssue(b) {
+  const kind = b.kind === 'mosque' ? 'мечеть' : 'халяль';
+  const lat = b.lat.toFixed(6), lng = b.lng.toFixed(6);
+  const lines = [
+    `**Тип:** ${kind}`,
+    `**Название:** ${plain(b.name)}`,
+    `**Координаты:** ${lat}, ${lng} ([карта](https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=18/${lat}/${lng}))`,
+  ];
+  if (b.osm) lines.push(`**OSM:** https://www.openstreetmap.org/${b.osm}`);
+  if (b.address) lines.push(`**Адрес:** ${plain(b.address)}`);
+  if (b.certificate) lines.push(`**Сертификат:** ${plain(b.certificate)}`);
+  if (b.comment) lines.push(`**Комментарий:** ${plain(b.comment)}`);
+  lines.push('', '_Заявка из приложения. Проверьте место и сертификат, прежде чем добавлять в `app/assets/halal/catalog.json`._');
+  return {
+    title: `${b.correction ? 'Исправление' : 'Новое место'}: ${plain(b.name).slice(0, 80)}`,
+    body: lines.join('\n'),
+    labels: ['halal-place'],
+  };
+}
+
+async function suggest(request, env) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'bad json' }, 400);
+  }
+  const invalid = validateSuggestion(body);
+  if (invalid) return json({ error: invalid }, 400);
+  const text = [body.name, body.address, body.certificate, body.comment].filter(Boolean).join(' ');
+  if (check(text) === 'refuse') return json({ status: 'refuse' }, 400);
+  if (!env.GITHUB_TOKEN || !env.GITHUB_REPO) return json({ status: 'unavailable' }, 503);
+  if (await overLimit(env, request)) return json({ status: 'limit' }, 429);
+  const r = await fetch(`https://api.github.com/repos/${env.GITHUB_REPO}/issues`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      accept: 'application/vnd.github+json',
+      'user-agent': 'imam-worker',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(suggestionIssue(body)),
+  });
+  if (!r.ok) return json({ status: 'unavailable' }, 503);
+  return json({ status: 'ok' });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
     if (url.pathname === '/health') return json({ ok: true });
+    if (url.pathname === '/suggest' && request.method === 'POST') return suggest(request, env);
     if (url.pathname !== '/ask' || request.method !== 'POST') return json({ error: 'not found' }, 404);
 
     let body;

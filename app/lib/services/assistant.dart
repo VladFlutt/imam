@@ -5,9 +5,13 @@ import 'package:http/http.dart' as http;
 
 import 'quran.dart';
 
-/// Адрес сервера ИИ (Cloudflare Worker). Задаётся при сборке:
+/// Адрес сервера ИИ (Cloudflare Worker). По умолчанию — выложенный worker
+/// проекта; другой адрес задаётся при сборке:
 /// flutter build web --dart-define=AI_ENDPOINT=https://imam-ai.ACCOUNT.workers.dev
-const aiEndpoint = String.fromEnvironment('AI_ENDPOINT');
+const _aiEndpointEnv = String.fromEnvironment('AI_ENDPOINT');
+const aiEndpoint = _aiEndpointEnv == ''
+    ? 'https://imam-ai.vladimir-sadikovv.workers.dev'
+    : _aiEndpointEnv;
 
 enum FilterAction { allow, refuse, imam, specialist }
 

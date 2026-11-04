@@ -1,11 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../app_state.dart';
 import '../l10n.dart';
+import '../services/assistant.dart' show aiEndpoint;
 import '../services/places.dart';
+import '../services/hijri.dart' show gregorianDate;
 import '../theme.dart';
 
 class MapScreen extends StatefulWidget {
@@ -31,11 +36,17 @@ class _MapScreenState extends State<MapScreen> {
       _error = null;
     });
     try {
-      final r = await PlacesService.fetch(b.south, b.west, b.north, b.east);
+      final (r, err) = await PlacesService.fetchAll(
+        b.south,
+        b.west,
+        b.north,
+        b.east,
+      );
       if (mounted) {
         setState(() {
           _places = r;
           _loadedOnce = true;
+          if (err != null) _error = 'net_error';
         });
       }
     } catch (e) {
@@ -110,6 +121,29 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                       ),
                     ),
+                  for (final p in visible.where((p) => p.certified))
+                    Marker(
+                      point: LatLng(p.lat, p.lng),
+                      width: 40,
+                      height: 40,
+                      alignment: const Alignment(-0.6, 0.6),
+                      child: IgnorePointer(
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade700,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1.5),
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            size: 11,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
               RichAttributionWidget(
@@ -175,6 +209,33 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
+          PositionedDirectional(
+            bottom: 80,
+            end: 12,
+            child: FloatingActionButton.small(
+              heroTag: 'suggest',
+              tooltip: l.t('suggest_place'),
+              onPressed: () {
+                final c = _map.camera.center;
+                _suggest(
+                  context,
+                  PlaceSuggestion(
+                    kind: PlaceKind.halal,
+                    name: '',
+                    lat: c.latitude,
+                    lng: c.longitude,
+                  ),
+                );
+              },
+              child: const Icon(Icons.add_location_alt_outlined),
+            ),
+          ),
+          // Перекрестие: заявка отмечает центр карты.
+          const IgnorePointer(
+            child: Center(
+              child: Icon(Icons.add, size: 28, color: Colors.black45),
+            ),
+          ),
         ],
       ),
     );
@@ -217,10 +278,25 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ],
               ),
-              if (p.kind == PlaceKind.halal) ...[
+              if (p.certificate != null) ...[
+                const SizedBox(height: 12),
+                _CertificateBlock(p.certificate!),
+              ] else if (p.kind == PlaceKind.halal) ...[
                 const SizedBox(height: 12),
                 Text(
                   l.t('halal_unverified'),
+                  style: Theme.of(ctx).textTheme.bodySmall,
+                ),
+              ],
+              if (p.fromCatalog && p.checked != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  l
+                      .t('catalog_checked')
+                      .replaceAll(
+                        '{date}',
+                        gregorianDate(p.checked!, l, (x) => x),
+                      ),
                   style: Theme.of(ctx).textTheme.bodySmall,
                 ),
               ],
@@ -235,8 +311,249 @@ class _MapScreenState extends State<MapScreen> {
                   mode: LaunchMode.externalApplication,
                 ),
               ),
+              TextButton.icon(
+                icon: const Icon(Icons.flag_outlined),
+                label: Text(l.t('report_error')),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _suggest(
+                    context,
+                    PlaceSuggestion(
+                      kind: p.kind,
+                      name: p.name,
+                      lat: p.lat,
+                      lng: p.lng,
+                      address: p.address ?? '',
+                      osmId: p.osmId,
+                      isCorrection: true,
+                    ),
+                  );
+                },
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _suggest(BuildContext context, PlaceSuggestion base) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => _SuggestSheet(base: base),
+    );
+  }
+}
+
+class _CertificateBlock extends StatelessWidget {
+  const _CertificateBlock(this.c);
+  final Certificate c;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L10nScope.of(context);
+    final ok = !c.expired;
+    final color = ok
+        ? Colors.green.shade700
+        : Theme.of(context).colorScheme.error;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(ok ? Icons.verified : Icons.warning_amber, color: color),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l.t(ok ? 'cert_badge' : 'cert_expired'),
+                  style: TextStyle(fontWeight: FontWeight.w700, color: color),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  [
+                    c.issuer,
+                    ?c.number,
+                    if (c.until != null)
+                      '${l.t('cert_until')} ${gregorianDate(c.until!, l, (x) => x)}',
+                  ].join(' · '),
+                ),
+                if (c.url != null)
+                  TextButton(
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                    onPressed: () => launchUrl(
+                      Uri.parse(c.url!),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                    child: Text(l.t('cert_check')),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SuggestSheet extends StatefulWidget {
+  const _SuggestSheet({required this.base});
+  final PlaceSuggestion base;
+
+  @override
+  State<_SuggestSheet> createState() => _SuggestSheetState();
+}
+
+class _SuggestSheetState extends State<_SuggestSheet> {
+  late PlaceKind _kind = widget.base.kind;
+  late final _name = TextEditingController(text: widget.base.name);
+  late final _address = TextEditingController(text: widget.base.address);
+  final _cert = TextEditingController();
+  final _comment = TextEditingController();
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    for (final c in [_name, _address, _cert, _comment]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    final l = L10nScope.of(context);
+    final b = widget.base;
+    final s = PlaceSuggestion(
+      kind: _kind,
+      name: _name.text.trim(),
+      lat: b.lat,
+      lng: b.lng,
+      address: _address.text.trim(),
+      certificate: _cert.text.trim(),
+      comment: _comment.text.trim(),
+      osmId: b.osmId,
+      isCorrection: b.isCorrection,
+    );
+    setState(() => _sending = true);
+    var sent = false;
+    if (aiEndpoint.isNotEmpty) {
+      try {
+        final r = await http
+            .post(
+              Uri.parse('$aiEndpoint/suggest'),
+              headers: {'content-type': 'application/json'},
+              body: jsonEncode(s.toJson()),
+            )
+            .timeout(const Duration(seconds: 20));
+        sent = r.statusCode == 200;
+      } catch (_) {}
+    }
+    if (!sent) {
+      // Сервера нет — открываем форму заявки на GitHub.
+      sent = await launchUrl(
+        s.githubIssueUrl(),
+        mode: LaunchMode.externalApplication,
+      );
+    }
+    if (!mounted) return;
+    setState(() => _sending = false);
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.pop(context);
+    messenger.showSnackBar(
+      SnackBar(content: Text(l.t(sent ? 'suggest_sent' : 'net_error'))),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L10nScope.of(context);
+    final b = widget.base;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        0,
+        20,
+        20 + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l.t(b.isCorrection ? 'report_error' : 'suggest_place'),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l.t(b.isCorrection ? 'report_hint' : 'suggest_hint'),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<PlaceKind>(
+              segments: [
+                ButtonSegment(
+                  value: PlaceKind.halal,
+                  icon: const Icon(Icons.restaurant),
+                  label: Text(l.t('halal')),
+                ),
+                ButtonSegment(
+                  value: PlaceKind.mosque,
+                  icon: const Icon(Icons.mosque),
+                  label: Text(l.t('mosques')),
+                ),
+              ],
+              selected: {_kind},
+              onSelectionChanged: (v) => setState(() => _kind = v.first),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _name,
+              maxLength: 120,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(labelText: l.t('suggest_name')),
+            ),
+            TextField(
+              controller: _address,
+              maxLength: 200,
+              decoration: InputDecoration(labelText: l.t('suggest_address')),
+            ),
+            if (_kind == PlaceKind.halal)
+              TextField(
+                controller: _cert,
+                maxLength: 200,
+                decoration: InputDecoration(labelText: l.t('suggest_cert')),
+              ),
+            TextField(
+              controller: _comment,
+              maxLength: 500,
+              maxLines: 3,
+              minLines: 1,
+              decoration: InputDecoration(labelText: l.t('suggest_comment')),
+            ),
+            const SizedBox(height: 8),
+            FilledButton(
+              onPressed: _sending || _name.text.trim().isEmpty ? null : _send,
+              child: _sending
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l.t('suggest_send')),
+            ),
+          ],
         ),
       ),
     );

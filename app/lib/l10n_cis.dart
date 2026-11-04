@@ -113,6 +113,29 @@ const cisStrings = <String, Map<String, String>>{
     'azan_denied':
         'Телефон көйләүләрендә кушымтага хәбәрләр җибәрергә рөхсәт итегез.',
     'azan_title': 'Намаз вакыты: {p}',
+    'hadith40': 'Нәвәвинең 40 хәдисе',
+    'hadith_n': '{n} нче хәдис',
+    'hadith_review':
+        'Гарәп тексты имам Нәвәвинең классик җыентыгы буенча. Тәрҗемә әлегә рус телендә, аны имам тикшерә. Хәдисләрнең мәгънәсен галимнәр аңлата: сорауларыгыз белән имамга мөрәҗәгать итегез.',
+    'hadith_ru_only':
+        'Бу телгә тәрҗемә әзерләнә, әлегә рус тәрҗемәсе күрсәтелә.',
+    'suggest_place': 'Урын тәкъдим итү',
+    'report_error': 'Хата турында хәбәр итү',
+    'suggest_hint':
+        'Урын харита уртасында (тәре белән) билгеләнә. Модератор гаризаны һәм сертификатны тикшергәч кенә урынны каталогка өсти.',
+    'report_hint':
+        'Нәрсә дөрес түгел икәнен языгыз: ябык, эш вакыты башка, сертификат юк, урыны дөрес түгел.',
+    'suggest_name': 'Исеме',
+    'suggest_address': 'Адресы',
+    'suggest_cert': 'Хәләл сертификаты: кем биргән, номеры',
+    'suggest_comment': 'Аңлатма',
+    'suggest_send': 'Тикшерүгә җибәрү',
+    'suggest_sent': 'Рәхмәт! Модератор гаризаны тикшерер.',
+    'cert_badge': 'Хәләл сертификаты',
+    'cert_expired': 'Сертификат вакыты чыккан',
+    'cert_until': 'кадәр',
+    'cert_check': 'Сертификация органы сайтында тикшерү',
+    'catalog_checked': 'Модератор тикшергән: {date}',
     'content_note':
         'Киңәшләр һәм догалар тәрҗемәсе әлегә тел белгечләре тарафыннан тикшерелмәгән.',
   },
@@ -227,6 +250,29 @@ const cisStrings = <String, Map<String, String>>{
     'azan_denied':
         'Telefon sozlamalarida ilovaga bildirishnomalarga ruxsat bering.',
     'azan_title': 'Namoz vaqti: {p}',
+    'hadith40': 'Navaviyning 40 hadisi',
+    'hadith_n': '{n}-hadis',
+    'hadith_review':
+        'Arabcha matn imom Navaviyning klassik to‘plamidan. Tarjima hozircha rus tilida va imom tomonidan tekshirilmoqda. Hadislar ma’nosini olimlar tushuntiradi: savollar bilan imomga murojaat qiling.',
+    'hadith_ru_only':
+        'Bu tilga tarjima tayyorlanmoqda, hozircha ruscha tarjima ko‘rsatiladi.',
+    'suggest_place': 'Joy taklif qilish',
+    'report_error': 'Xato haqida xabar berish',
+    'suggest_hint':
+        'Joy xarita markazida (xoch belgisi) belgilanadi. Moderator arizani va sertifikatni tekshirgandan keyin joyni katalogga qo‘shadi.',
+    'report_hint':
+        'Nima noto‘g‘ri ekanini yozing: yopilgan, ish vaqti boshqa, sertifikat yo‘q, joy noto‘g‘ri.',
+    'suggest_name': 'Nomi',
+    'suggest_address': 'Manzil',
+    'suggest_cert': 'Halol sertifikati: kim bergan, raqami',
+    'suggest_comment': 'Izoh',
+    'suggest_send': 'Tekshiruvga yuborish',
+    'suggest_sent': 'Rahmat! Moderator arizani tekshiradi.',
+    'cert_badge': 'Halol sertifikati',
+    'cert_expired': 'Sertifikat muddati tugagan',
+    'cert_until': 'gacha',
+    'cert_check': 'Sertifikatlash organi saytida tekshirish',
+    'catalog_checked': 'Moderator tekshirgan: {date}',
     'content_note':
         'Maslahatlar va duolar tarjimasi hali ona tili egalari tomonidan tekshirilmagan. Qur’on tarjimasi — Muhammad Sodiq Muhammad Yusuf (kirill).',
   },
@@ -339,6 +385,29 @@ const cisStrings = <String, Map<String, String>>{
     'azan_denied':
         'Телефон баптауларында қосымшаға хабарламаларға рұқсат беріңіз.',
     'azan_title': 'Намаз уақыты: {p}',
+    'hadith40': 'Нәуәуидің 40 хадисі',
+    'hadith_n': '{n}-хадис',
+    'hadith_review':
+        'Араб мәтіні имам Нәуәуидің классикалық жинағынан. Аударма әзірге орыс тілінде, оны имам тексеріп жатыр. Хадистердің мағынасын ғалымдар түсіндіреді: сұрақтарыңызбен имамға жүгініңіз.',
+    'hadith_ru_only':
+        'Бұл тілге аударма дайындалуда, әзірге орысша аударма көрсетіледі.',
+    'suggest_place': 'Орын ұсыну',
+    'report_error': 'Қате туралы хабарлау',
+    'suggest_hint':
+        'Орын карта ортасында (айқышпен) белгіленеді. Модератор өтінім мен сертификатты тексергеннен кейін ғана орынды каталогқа қосады.',
+    'report_hint':
+        'Не дұрыс емес екенін жазыңыз: жабық, жұмыс уақыты басқа, сертификат жоқ, орны қате.',
+    'suggest_name': 'Атауы',
+    'suggest_address': 'Мекенжайы',
+    'suggest_cert': 'Халал сертификаты: кім берген, нөмірі',
+    'suggest_comment': 'Пікір',
+    'suggest_send': 'Тексеруге жіберу',
+    'suggest_sent': 'Рақмет! Модератор өтінімді тексереді.',
+    'cert_badge': 'Халал сертификаты',
+    'cert_expired': 'Сертификат мерзімі өткен',
+    'cert_until': 'дейін',
+    'cert_check': 'Сертификаттау органының сайтында тексеру',
+    'catalog_checked': 'Модератор тексерген: {date}',
     'content_note':
         'Кеңестер мен дұғалардың аудармасын әлі тіл иелері тексермеген. Құран аудармасы әзірге орыс тілінде (Э. Кулиев).',
   },
@@ -451,6 +520,29 @@ const cisStrings = <String, Map<String, String>>{
     'azan_denied':
         'Телефондун жөндөөлөрүндө тиркемеге эскертмелерге уруксат бериңиз.',
     'azan_title': 'Намаз убактысы: {p}',
+    'hadith40': 'Наваинин 40 хадиси',
+    'hadith_n': '{n}-хадис',
+    'hadith_review':
+        'Араб тексти имам Наваинин классикалык жыйнагынан. Котормо азырынча орус тилинде, аны имам текшерүүдө. Хадистердин маанисин аалымдар түшүндүрөт: суроолоруңуз менен имамга кайрылыңыз.',
+    'hadith_ru_only':
+        'Бул тилге котормо даярдалууда, азырынча орусча котормо көрсөтүлөт.',
+    'suggest_place': 'Жай сунуштоо',
+    'report_error': 'Ката тууралуу кабарлоо',
+    'suggest_hint':
+        'Жай картанын ортосунда (кайчылаш белги) белгиленет. Модератор арызды жана сертификатты текшергенден кийин гана жайды каталогго кошот.',
+    'report_hint':
+        'Эмне туура эмес экенин жазыңыз: жабык, иш убактысы башка, сертификат жок, жайы туура эмес.',
+    'suggest_name': 'Аталышы',
+    'suggest_address': 'Дареги',
+    'suggest_cert': 'Халал сертификаты: ким берген, номери',
+    'suggest_comment': 'Комментарий',
+    'suggest_send': 'Текшерүүгө жөнөтүү',
+    'suggest_sent': 'Рахмат! Модератор арызды текшерет.',
+    'cert_badge': 'Халал сертификаты',
+    'cert_expired': 'Сертификаттын мөөнөтү бүткөн',
+    'cert_until': 'чейин',
+    'cert_check': 'Сертификациялоо органынын сайтында текшерүү',
+    'catalog_checked': 'Модератор текшерген: {date}',
     'content_note':
         'Кеңештер менен дубалардын котормосун азырынча тил ээлери текшере элек. Курандын котормосу азырынча орус тилинде (Э. Кулиев).',
   },
@@ -565,6 +657,29 @@ const cisStrings = <String, Map<String, String>>{
     'azan_denied':
         'Дар танзимоти телефон ба барнома иҷозати огоҳиномаҳо диҳед.',
     'azan_title': 'Вақти намоз: {p}',
+    'hadith40': '40 ҳадиси Нававӣ',
+    'hadith_n': 'Ҳадиси {n}',
+    'hadith_review':
+        'Матни арабӣ аз маҷмӯаи классикии имом Нававӣ. Тарҷума ҳоло ба забони русӣ аст ва аз ҷониби имом санҷида мешавад. Маънои ҳадисҳоро уламо шарҳ медиҳанд: бо саволҳо ба имом муроҷиат кунед.',
+    'hadith_ru_only':
+        'Тарҷума ба ин забон омода мешавад, ҳоло тарҷумаи русӣ нишон дода мешавад.',
+    'suggest_place': 'Пешниҳоди ҷой',
+    'report_error': 'Хабар дар бораи хато',
+    'suggest_hint':
+        'Ҷой дар маркази харита (аломати +) қайд мешавад. Модератор аризаро ва сертификатро санҷида, баъд ҷойро ба феҳрист илова мекунад.',
+    'report_hint':
+        'Нависед, ки чӣ нодуруст аст: баста, вақти корӣ дигар, сертификат нест, ҷой нодуруст.',
+    'suggest_name': 'Номи',
+    'suggest_address': 'Суроға',
+    'suggest_cert': 'Сертификати ҳалол: кӣ додааст, рақам',
+    'suggest_comment': 'Шарҳ',
+    'suggest_send': 'Барои санҷиш фиристодан',
+    'suggest_sent': 'Ташаккур! Модератор аризаро месанҷад.',
+    'cert_badge': 'Сертификати ҳалол',
+    'cert_expired': 'Мӯҳлати сертификат гузаштааст',
+    'cert_until': 'то',
+    'cert_check': 'Дар сомонаи мақоми сертификатсия санҷед',
+    'catalog_checked': 'Модератор санҷидааст: {date}',
     'content_note':
         'Тарҷумаи маслиҳатҳо ва дуоҳо ҳанӯз аз ҷониби соҳибзабонон санҷида нашудааст.',
   },
@@ -678,6 +793,29 @@ const cisStrings = <String, Map<String, String>>{
     'azan_mobile_only': 'Mobil tətbiqdə mövcuddur',
     'azan_denied': 'Telefon ayarlarında tətbiqə bildirişlərə icazə verin.',
     'azan_title': 'Namaz vaxtı: {p}',
+    'hadith40': 'Nəvəvinin 40 hədisi',
+    'hadith_n': '{n}-ci hədis',
+    'hadith_review':
+        'Ərəb mətni imam Nəvəvinin klassik toplusundandır. Tərcümə hələlik rus dilindədir və imam tərəfindən yoxlanılır. Hədislərin mənasını alimlər izah edir: suallarla imama müraciət edin.',
+    'hadith_ru_only':
+        'Bu dilə tərcümə hazırlanır, hələlik rusca tərcümə göstərilir.',
+    'suggest_place': 'Yer təklif et',
+    'report_error': 'Səhv barədə xəbər ver',
+    'suggest_hint':
+        'Yer xəritənin mərkəzində (xaç işarəsi) qeyd olunur. Moderator müraciəti və sertifikatı yoxladıqdan sonra yeri kataloqa əlavə edir.',
+    'report_hint':
+        'Nəyin səhv olduğunu yazın: bağlıdır, iş vaxtı fərqlidir, sertifikat yoxdur, yer səhvdir.',
+    'suggest_name': 'Adı',
+    'suggest_address': 'Ünvan',
+    'suggest_cert': 'Halal sertifikatı: kim verib, nömrəsi',
+    'suggest_comment': 'Şərh',
+    'suggest_send': 'Yoxlamaya göndər',
+    'suggest_sent': 'Təşəkkürlər! Moderator müraciəti yoxlayacaq.',
+    'cert_badge': 'Halal sertifikatı',
+    'cert_expired': 'Sertifikatın müddəti bitib',
+    'cert_until': 'qədər',
+    'cert_check': 'Sertifikatlaşdırma orqanının saytında yoxla',
+    'catalog_checked': 'Moderator yoxlayıb: {date}',
     'content_note':
         'Məsləhətlərin və duaların tərcüməsi hələ dil daşıyıcıları tərəfindən yoxlanılmayıb.',
   },

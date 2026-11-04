@@ -1,8 +1,22 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum PlaceKind { mosque, halal }
+
+class Certificate {
+  const Certificate({required this.issuer, this.number, this.until, this.url});
+  final String issuer;
+  final String? number;
+  final DateTime? until;
+  final String? url;
+
+  bool get expired =>
+      until != null &&
+      until!.isBefore(DateTime.now().subtract(const Duration(days: 1)));
+}
 
 class Place {
   Place(
@@ -12,14 +26,28 @@ class Place {
     this.lng,
     this.hours,
     this.address,
-    this.tags,
-  );
+    this.tags, {
+    this.osmId,
+    this.certificate,
+    this.checked,
+    this.fromCatalog = false,
+  });
   final PlaceKind kind;
   final String name;
   final double lat, lng;
   final String? hours;
   final String? address;
   final Map<String, dynamic> tags;
+
+  /// «node/123», «way/456» — для объектов OpenStreetMap.
+  final String? osmId;
+  final Certificate? certificate;
+  final DateTime? checked;
+
+  /// Запись из модерируемого каталога (проверена человеком).
+  final bool fromCatalog;
+
+  bool get certified => certificate != null && !certificate!.expired;
 }
 
 /// Мечети и халяль-места из OpenStreetMap (Overpass API, лицензия ODbL).
@@ -72,9 +100,152 @@ out center tags 300;
               ? null
               : [street, house].whereType<String>().join(', '),
           tags,
+          osmId: '${e['type']}/${e['id']}',
         ),
       );
     }
     return out;
+  }
+
+  /// OpenStreetMap + каталог. Записи каталога заменяют совпавшие объекты OSM.
+  /// Если OSM недоступен, показываем хотя бы каталог и пробрасываем ошибку.
+  static Future<(List<Place>, Object?)> fetchAll(
+    double south,
+    double west,
+    double north,
+    double east,
+  ) async {
+    final catalog = (await HalalCatalog.load())
+        .where(
+          (p) =>
+              p.lat >= south &&
+              p.lat <= north &&
+              p.lng >= west &&
+              p.lng <= east,
+        )
+        .toList();
+    List<Place> osm = const [];
+    Object? error;
+    try {
+      osm = await fetch(south, west, north, east);
+    } catch (e) {
+      error = e;
+    }
+    final replaced = {for (final p in catalog) ?p.osmId};
+    return (
+      [...catalog, ...osm.where((p) => !replaced.contains(p.osmId))],
+      error,
+    );
+  }
+}
+
+/// Модерируемый каталог: assets/halal/catalog.json. Свежая версия берётся
+/// из репозитория, при неудаче — последняя сохранённая или встроенная.
+class HalalCatalog {
+  static const remote =
+      'https://raw.githubusercontent.com/VladFlutt/imam/main/app/assets/halal/catalog.json';
+  static const _cacheKey = 'halalCatalog';
+  static List<Place>? _places;
+
+  static Future<List<Place>> load() async {
+    if (_places != null) return _places!;
+    final prefs = await SharedPreferences.getInstance();
+    String raw =
+        prefs.getString(_cacheKey) ??
+        await rootBundle.loadString('assets/halal/catalog.json');
+    try {
+      final r = await http
+          .get(Uri.parse(remote))
+          .timeout(const Duration(seconds: 8));
+      if (r.statusCode == 200) {
+        final body = utf8.decode(r.bodyBytes);
+        parse(body); // проверяем, что JSON корректен
+        raw = body;
+        await prefs.setString(_cacheKey, body);
+      }
+    } catch (_) {
+      // офлайн — используем сохранённую копию
+    }
+    return _places = parse(raw);
+  }
+
+  static List<Place> parse(String raw) {
+    final data = jsonDecode(raw) as Map<String, dynamic>;
+    return [
+      for (final e in (data['places'] as List? ?? const []))
+        Place(
+          e['kind'] == 'mosque' ? PlaceKind.mosque : PlaceKind.halal,
+          e['name'] as String,
+          (e['lat'] as num).toDouble(),
+          (e['lng'] as num).toDouble(),
+          e['hours'] as String?,
+          e['address'] as String?,
+          const {},
+          osmId: e['osm'] as String?,
+          checked: DateTime.tryParse(e['checked'] as String? ?? ''),
+          fromCatalog: true,
+          certificate: e['certificate'] == null
+              ? null
+              : Certificate(
+                  issuer: e['certificate']['issuer'] as String,
+                  number: e['certificate']['number'] as String?,
+                  until: DateTime.tryParse(
+                    e['certificate']['until'] as String? ?? '',
+                  ),
+                  url: e['certificate']['url'] as String?,
+                ),
+        ),
+    ];
+  }
+}
+
+/// Заявка на добавление или исправление места.
+class PlaceSuggestion {
+  PlaceSuggestion({
+    required this.kind,
+    required this.name,
+    required this.lat,
+    required this.lng,
+    this.address = '',
+    this.certificate = '',
+    this.comment = '',
+    this.osmId,
+    this.isCorrection = false,
+  });
+  final PlaceKind kind;
+  final String name, address, certificate, comment;
+  final double lat, lng;
+  final String? osmId;
+  final bool isCorrection;
+
+  Map<String, dynamic> toJson() => {
+    'kind': kind.name,
+    'name': name,
+    'lat': double.parse(lat.toStringAsFixed(6)),
+    'lng': double.parse(lng.toStringAsFixed(6)),
+    'address': address,
+    'certificate': certificate,
+    'comment': comment,
+    'osm': ?osmId,
+    'correction': isCorrection,
+  };
+
+  /// Запасной путь без сервера: форма нового issue на GitHub.
+  Uri githubIssueUrl() {
+    final title =
+        '${isCorrection ? 'Исправление' : 'Новое место'}: ${name.isEmpty ? '(без названия)' : name}';
+    final body = [
+      'Тип: ${kind == PlaceKind.mosque ? 'мечеть' : 'халяль'}',
+      'Координаты: ${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}',
+      if (osmId != null) 'OSM: https://www.openstreetmap.org/$osmId',
+      if (address.isNotEmpty) 'Адрес: $address',
+      if (certificate.isNotEmpty) 'Сертификат: $certificate',
+      if (comment.isNotEmpty) 'Комментарий: $comment',
+    ].join('\n');
+    return Uri.https('github.com', '/VladFlutt/imam/issues/new', {
+      'title': title,
+      'body': body,
+      'labels': 'halal-place',
+    });
   }
 }
