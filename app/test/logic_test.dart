@@ -75,6 +75,30 @@ void main() {
     },
   );
 
+  test('хадисы переведены на все языки СНГ', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await HadithRepo.instance.load();
+    final cyr = RegExp('[А-Яа-яЁё]');
+    final lat = RegExp('[A-Za-z]');
+    for (final lang in HadithRepo.translations) {
+      final latin = lang == 'uz' || lang == 'az';
+      for (final h in HadithRepo.instance.items) {
+        expect(h.hasOwn(lang), isTrue, reason: '$lang #${h.n}');
+        final text = '${h.titleFor(lang)} ${h.translation(lang)}';
+        expect(
+          text.contains(latin ? cyr : lat),
+          isFalse,
+          reason: '$lang #${h.n}: смешение алфавитов',
+        );
+        expect(h.translation(lang), isNot(h.ru));
+        if (h.note != null) expect(h.noteFor(lang), isNot(h.note!['ru']));
+      }
+    }
+    final first = HadithRepo.instance.items.first;
+    expect(first.titleFor('kk'), 'Амалдар ниетке қарай');
+    expect(first.translation('ar'), isNull);
+  });
+
   test('источники хадисов переводятся', () {
     expect(
       L10n('en').source('Ибн Маджа, ад-Даракутни'),

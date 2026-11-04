@@ -85,9 +85,7 @@ class HadithScreen extends StatelessWidget {
     final h = hadith;
     final scheme = Theme.of(context).colorScheme;
     final tr = h.translation(l.lang);
-    final note = h.note == null
-        ? null
-        : (l.lang == 'en' ? h.note!['en'] : h.note!['ru']);
+    final note = h.noteFor(l.lang);
     return Scaffold(
       appBar: AppBar(
         title: Text(l.t('hadith_n').replaceAll('{n}', s.num('${h.n}'))),
@@ -125,7 +123,7 @@ class HadithScreen extends StatelessWidget {
               context,
             ).textTheme.labelLarge?.copyWith(color: scheme.primary),
           ),
-          if (note != null && l.lang != 'ar') ...[
+          if (note != null) ...[
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
@@ -145,7 +143,7 @@ class HadithScreen extends StatelessWidget {
               ),
             ),
           ],
-          if (tr != null && !const {'ru', 'en'}.contains(l.lang)) ...[
+          if (tr != null && !h.hasOwn(l.lang)) ...[
             const SizedBox(height: 16),
             Text(
               l.t('hadith_ru_only'),
