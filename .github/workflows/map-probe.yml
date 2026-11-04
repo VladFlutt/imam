@@ -7,13 +7,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Overpass variants
+        shell: python
         run: |
-          Q='[out:json][timeout:25];(nwr["amenity"="place_of_worship"]["religion"="muslim"](55.70,37.50,55.82,37.72);nwr["diet:halal"~"^(yes|only)$"](55.70,37.50,55.82,37.72););out center tags 300;'
-          BUA='Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36'
-          try() { echo "== $1 [$2]"; curl -sS -m 45 -D h.txt -o o.json -A "$2" -H 'Origin: https://imam-dusky.vercel.app' -H 'Referer: https://imam-dusky.vercel.app/' $3 "$1" -w 'http %{http_code} t=%{time_total}\n' || true; grep -i 'access-control-allow-origin' h.txt || echo 'no CORS'; python3 -c "import json;d=json.load(open('o.json'));e=d['elements'];print('elements',len(e),[x.get('tags',{}).get('name') for x in e][:5])" 2>/dev/null || head -c 400 o.json; echo; }
-          for ep in https://overpass-api.de/api/interpreter https://maps.mail.ru/osm/tools/overpass/api/interpreter https://overpass.private.coffee/api/interpreter https://overpass.osm.jp/api/interpreter; do
-            try $ep "$BUA" "--data-urlencode data=$Q"
-          done
-          try https://overpass-api.de/api/interpreter "curl/8" "--data-urlencode data=$Q"
-          try https://overpass-api.de/api/interpreter "$BUA" "-G --data-urlencode data=$Q"
-          echo "== preflight"; curl -sS -m 20 -X OPTIONS -D - -o /dev/null -A "$BUA" -H 'Origin: https://imam-dusky.vercel.app' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type' https://overpass-api.de/api/interpreter | head -20
+          import json, time, urllib.request, urllib.parse
+          Q = '[out:json][timeout:25];(nwr["amenity"="place_of_worship"]["religion"="muslim"](55.70,37.50,55.82,37.72);nwr["diet:halal"~"^(yes|only)$"](55.70,37.50,55.82,37.72););out center tags 300;'
+          BUA = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36'
+          def go(url, ua, method='POST', ctype=True, accept=None):
+              data = urllib.parse.urlencode({'data': Q}).encode()
+              h = {'User-Agent': ua, 'Origin': 'https://imam-dusky.vercel.app', 'Referer': 'https://imam-dusky.vercel.app/'}
+              if accept: h['Accept'] = accept
+              if method == 'GET':
+                  req = urllib.request.Request(url + '?' + data.decode(), headers=h)
+              else:
+                  if ctype: h['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8'
+                  req = urllib.request.Request(url, data=data, headers=h, method='POST')
+              t = time.time()
+              try:
+                  r = urllib.request.urlopen(req, timeout=45)
+                  body = r.read(); code = r.status; hdr = r.headers
+              except urllib.error.HTTPError as e:
+                  body = e.read(); code = e.code; hdr = e.headers
+              except Exception as e:
+                  print(f'{url} [{ua[:20]}] {method} -> {e!r}'); return
+              cors = hdr.get('Access-Control-Allow-Origin')
+              info = body[:120]
+              try:
+                  els = json.loads(body)['elements']; info = f'elements={len(els)} {[x.get("tags",{}).get("name") for x in els][:5]}'
+              except Exception: pass
+              print(f'{url} [{ua[:20]}] {method} -> {code} {time.time()-t:.1f}s cors={cors} {info}')
+          for ep in ['https://overpass-api.de/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.osm.jp/api/interpreter','https://overpass.kumi.systems/api/interpreter']:
+              go(ep, BUA)
+          go('https://overpass-api.de/api/interpreter', 'Dart/3.13 (dart:io)')
+          go('https://overpass-api.de/api/interpreter', 'imam-app/1.0 (+https://github.com/VladFlutt/imam)')
+          go('https://overpass-api.de/api/interpreter', BUA, 'GET')
+          go('https://overpass-api.de/api/interpreter', BUA, accept='*/*')
