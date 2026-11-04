@@ -123,7 +123,24 @@ test('места: при отказе первого зеркала берётс
   assert.equal(r.elements.length, 1);
 });
 
-test('места: все зеркала недоступны → 503', async () => {
+test('места: Overpass недоступен → мечети из Photon', async () => {
+  const fake = async (url) => {
+    if (String(url).includes('photon')) {
+      return Response.json({ features: [{ geometry: { coordinates: [37.62, 55.78] },
+        properties: { osm_type: 'W', osm_id: 5, name: 'Соборная мечеть', street: 'Выползов переулок' } }] });
+    }
+    return new Response('busy', { status: 504 });
+  };
+  const res = await places(new Request('https://x/places?s=55.7&w=37.5&n=55.8&e=37.7'), {}, fake);
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.partial, true);
+  assert.equal(body.elements.length, 1); // три запроса, один объект без дублей
+  assert.equal(body.elements[0].tags.religion, 'muslim');
+  assert.equal(body.elements[0].type, 'way');
+});
+
+test('места: все источники недоступны → 503', async () => {
   const fake = async () => new Response('busy', { status: 504 });
   const res = await places(new Request('https://x/places?s=55.7&w=37.5&n=55.8&e=37.7'), {}, fake);
   assert.equal(res.status, 503);
