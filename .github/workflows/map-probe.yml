@@ -1,0 +1,21 @@
+name: map probe
+on:
+  push:
+    branches: [check/map-probe]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Overpass mirrors and tiles
+        run: |
+          Q='[out:json][timeout:25];(nwr["amenity"="place_of_worship"]["religion"="muslim"](55.70,37.50,55.82,37.72);nwr["diet:halal"~"^(yes|only)$"](55.70,37.50,55.82,37.72);nwr["cuisine"~"halal"](55.70,37.50,55.82,37.72);nwr["halal"="yes"](55.70,37.50,55.82,37.72););out center tags 300;'
+          for ep in https://overpass-api.de/api/interpreter https://overpass.kumi.systems/api/interpreter https://maps.mail.ru/osm/tools/overpass/api/interpreter https://overpass.private.coffee/api/interpreter; do
+            echo "== $ep"
+            curl -sS -m 40 -D h.txt -o o.json -H 'Origin: https://imam-dusky.vercel.app' --data-urlencode "data=$Q" "$ep" -w 'http %{http_code} time %{time_total}\n' || true
+            grep -i 'access-control-allow-origin' h.txt || echo 'no CORS header'
+            python3 -c "import json;d=json.load(open('o.json'));e=d['elements'];m=[x for x in e if x.get('tags',{}).get('amenity')=='place_of_worship'];print('elements',len(e),'mosques',len(m));print([x['tags'].get('name') for x in m][:8])" || head -c 300 o.json
+          done
+          echo "== tiles"
+          curl -sS -m 20 -o t.png -H 'Referer: https://imam-dusky.vercel.app/' -w 'tile http %{http_code} %{content_type} %{size_download}\n' https://tile.openstreetmap.org/13/4953/2561.png
+          curl -sS -m 20 -o /dev/null -w 'site http %{http_code}\n' https://imam-dusky.vercel.app/
+          curl -sS -m 20 -o /dev/null -w 'kk json http %{http_code}\n' https://imam-dusky.vercel.app/assets/assets/hadith/nawawi_kk.json
