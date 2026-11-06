@@ -149,6 +149,46 @@ void main() {
     expect(places.last.kind, PlaceKind.halal);
   });
 
+  test('здание мечети рядом с точкой мечети не дублируется', () {
+    final places = PlacesService.parse({
+      'elements': [
+        {
+          'type': 'node',
+          'id': 1,
+          'lat': 55.7,
+          'lon': 37.6,
+          'tags': {'amenity': 'place_of_worship', 'religion': 'muslim'},
+        },
+        {
+          'type': 'way',
+          'id': 2,
+          'center': {'lat': 55.7002, 'lon': 37.6003},
+          'tags': {'building': 'mosque'},
+        },
+        {
+          'type': 'way',
+          'id': 3,
+          'center': {'lat': 55.8, 'lon': 37.7},
+          'tags': {'building': 'mosque', 'name': 'Мечеть'},
+        },
+        {
+          'type': 'node',
+          'id': 4,
+          'lat': 55.71,
+          'lon': 37.61,
+          'tags': {'shop': 'butcher', 'name': 'Халяль мясо'},
+        },
+      ],
+    });
+    expect(places.map((p) => p.osmId), ['node/1', 'way/3', 'node/4']);
+    expect(places[1].kind, PlaceKind.mosque);
+    expect(places[2].kind, PlaceKind.halal);
+    final q = PlacesService.overpassQuery(55.7, 37.5, 55.8, 37.7);
+    expect(q, contains('.m out center tags'));
+    expect(RegExp(PlacesService.halalNames).hasMatch('ХАЛЯЛЬ'), isTrue);
+    expect(RegExp(PlacesService.mosqueNames).hasMatch('Мәчет'), isTrue);
+  });
+
   test('источники хадисов переводятся', () {
     expect(
       L10n('en').source('Ибн Маджа, ад-Даракутни'),
