@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -50,26 +51,84 @@ class _MapScreenState extends State<MapScreen> {
     s.setGps(r.lat!, r.lng!);
     if (same) {
       _map.move(LatLng(r.lat!, r.lng!), 14);
-      _load();
+      _load(force: true);
     }
   }
 
-  Future<void> _load() async {
+  /// Уже загруженные места (по всем просмотренным областям) и сами области:
+  /// при сдвиге карты догружаем только то, что ещё не видели.
+  final Map<String, Place> _byKey = {};
+  final List<LatLngBounds> _loadedAreas = [];
+  Timer? _debounce;
+  bool _pending = false;
+
+  /// Больше сервер не принимает (см. worker/src/places.js).
+  static const _maxSpan = 1.4;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  /// Карта остановилась — через полсекунды догружаем новую область.
+  void _onMoved(MapCamera camera, bool hasGesture) {
+    if (!hasGesture) return;
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 600), _load);
+  }
+
+  /// Область запроса: видимая плюс запас по краям, но не больше [_maxSpan].
+  static LatLngBounds _queryArea(LatLngBounds b) {
+    double grow(double span) => (span * 1.5).clamp(0.0, _maxSpan).toDouble();
+    final h = grow(b.north - b.south) / 2;
+    final w = grow(b.east - b.west) / 2;
+    final c = b.center;
+    double lat(double v) => v.clamp(-90.0, 90.0).toDouble();
+    double lng(double v) => v.clamp(-180.0, 180.0).toDouble();
+    return LatLngBounds(
+      LatLng(lat(c.latitude - h), lng(c.longitude - w)),
+      LatLng(lat(c.latitude + h), lng(c.longitude + w)),
+    );
+  }
+
+  /// [force] — кнопка «Искать здесь»: загружаем даже уже просмотренную
+  /// или слишком большую область (тогда только её центр).
+  Future<void> _load({bool force = false}) async {
+    if (!mounted) return;
+    if (_loading) {
+      _pending = true;
+      return;
+    }
     final b = _map.camera.visibleBounds;
+    final tooLarge = b.north - b.south > _maxSpan || b.east - b.west > _maxSpan;
+    if (!force && (tooLarge || _loadedAreas.any((a) => a.containsBounds(b)))) {
+      return;
+    }
+    final area = _queryArea(b);
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
       final (r, err) = await PlacesService.fetchAll(
-        b.south,
-        b.west,
-        b.north,
-        b.east,
+        area.south,
+        area.west,
+        area.north,
+        area.east,
       );
       if (mounted) {
         setState(() {
-          _places = r;
+          // Не держим в памяти бесконечно много: начинаем заново.
+          if (_byKey.length > 4000) {
+            _byKey.clear();
+            _loadedAreas.clear();
+          }
+          for (final p in r) {
+            _byKey[p.osmId ?? '${p.lat},${p.lng},${p.name}'] = p;
+          }
+          _places = _byKey.values.toList();
+          if (err == null) _loadedAreas.add(area);
           _loadedOnce = true;
           if (err != null) _error = 'net_error';
         });
@@ -78,7 +137,18 @@ class _MapScreenState extends State<MapScreen> {
       if (mounted) setState(() => _error = 'net_error');
     } finally {
       if (mounted) setState(() => _loading = false);
+      if (_pending && mounted) {
+        _pending = false;
+        _load();
+      }
     }
+  }
+
+  /// Город сменился: прежние места к новой области не относятся.
+  void _reset() {
+    _byKey.clear();
+    _loadedAreas.clear();
+    _places = [];
   }
 
   @override
@@ -91,8 +161,9 @@ class _MapScreenState extends State<MapScreen> {
     final key = '${s.lat},${s.lng}';
     if (_centerKey != null && _centerKey != key) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        _reset();
         _map.move(center, 13);
-        _load();
+        _load(force: true);
       });
     }
     _centerKey = key;
@@ -109,7 +180,8 @@ class _MapScreenState extends State<MapScreen> {
             options: MapOptions(
               initialCenter: center,
               initialZoom: 13,
-              onMapReady: _load,
+              onMapReady: () => _load(force: true),
+              onPositionChanged: _onMoved,
             ),
             children: [
               TileLayer(
@@ -228,7 +300,7 @@ class _MapScreenState extends State<MapScreen> {
             end: 0,
             child: Center(
               child: FilledButton.icon(
-                onPressed: _loading ? null : _load,
+                onPressed: _loading ? null : () => _load(force: true),
                 icon: const Icon(Icons.search),
                 label: Text(l.t('refresh_area')),
               ),

@@ -75,7 +75,7 @@ Workflow `.github/workflows/worker.yml` проверяет и выкладыва
 - Коран: арабский текст Uthmani и переводы — [Tanzil](https://tanzil.net), через npm-пакеты `quran-json` (CC BY-SA 4.0) и `@ghoran/translation`. Переводы Tanzil разрешены к некоммерческому использованию без изменений; перед коммерческим релизом нужно уточнить права.
 - Время намаза: [adhan_dart](https://pub.dev/packages/adhan_dart) (MIT), метод ДУМ РФ (16° / 15°) по умолчанию, ханафитский аср, правило седьмой части ночи для северных широт.
 - Календарь хиджры: Умм аль-Кура, пакет [hijri](https://pub.dev/packages/hijri) (MIT). Даты могут отличаться на день от объявлений ДУМ.
-- Мечети и халяль: © участники [OpenStreetMap](https://www.openstreetmap.org/copyright), ODbL, через Overpass API.
+- Мечети и халяль: © участники [OpenStreetMap](https://www.openstreetmap.org/copyright), ODbL, через Overpass API. Ищутся мечети с тегами `religion=muslim`/`islam`, `building=mosque` и мечети без тега религии по названию («мечеть», «masjid», «camii», «مسجد» и др.); халяль — по тегам `diet:halal`, `cuisine=halal`, `halal=yes` и заведения и магазины со словом «халяль»/«halal» в названии (в карточке они помечены как неподтверждённые). Карта догружает места при сдвиге и приближении.
 - Шрифты: Amiri Quran, Amiri, Noto Naskh Arabic, Noto Sans (SIL OFL).
 - 40 хадисов ан-Навави: арабский текст — npm-пакет `@kazishariar/nawawi-40-hadith-data` (CC BY 4.0). Английский перевод из пакета повреждён (вырезаны фрагменты), поэтому переводы на русский и английский подготовлены заново с арабского и ждут проверки имамом.
 

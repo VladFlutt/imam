@@ -101,18 +101,7 @@ class PlacesService {
         lastError = e;
       }
     }
-    final bbox = '$south,$west,$north,$east';
-    final query =
-        '''
-[out:json][timeout:25];
-(
-  nwr["amenity"="place_of_worship"]["religion"="muslim"]($bbox);
-  nwr["diet:halal"~"^(yes|only)\$"]($bbox);
-  nwr["cuisine"~"halal"]($bbox);
-  nwr["halal"="yes"]($bbox);
-);
-out center tags 300;
-''';
+    final query = overpassQuery(south, west, north, east);
     for (final url in mirrors) {
       try {
         final r = await http
@@ -129,6 +118,40 @@ out center tags 300;
     throw lastError ?? Exception('overpass');
   }
 
+  /// Мечети без тега religion и места, которые называют себя халяль.
+  /// Тот же запрос, что на сервере (worker/src/places.js).
+  static const mosqueNames =
+      r'[Мм]ечет|[Мм]ечит|[Мм]әчет|[Мм]ешіт|[Мм]асджид|[Mm]osque|[Mm]osqu[ée]e|[Mm]asjid|[Mm]esjid|[Mm]oschee|[Cc]amii|[Mm]escit|مسجد|جامع';
+  static const halalNames = r'[Hh]alal|HALAL|[Хх]ал[яа]ль|ХАЛ[ЯА]ЛЬ|حلال';
+
+  /// Мечети и халяль выдаются отдельно, чтобы лимит не обрезал мечети.
+  static String overpassQuery(
+    double south,
+    double west,
+    double north,
+    double east,
+  ) {
+    final b = '$south,$west,$north,$east';
+    return '''
+[out:json][timeout:25];
+(
+  nwr["amenity"="place_of_worship"]["religion"~"^(muslim|islam)\$"]($b);
+  nwr["building"="mosque"]($b);
+  nwr["amenity"="place_of_worship"][!"religion"]["name"~"$mosqueNames"]($b);
+)->.m;
+(
+  nwr["diet:halal"~"^(yes|only)\$"]($b);
+  nwr["cuisine"~"halal"]($b);
+  nwr["halal"="yes"]($b);
+  nwr["amenity"~"^(restaurant|cafe|fast_food|food_court|canteen)\$"]["name"~"$halalNames"]($b);
+  nwr["shop"]["name"~"$halalNames"]($b);
+)->.h;
+(.h; - .m;)->.h;
+.m out center tags 500;
+.h out center tags 500;
+''';
+  }
+
   /// Разбор ответа Overpass.
   static List<Place> parse(Map<String, dynamic> data) {
     final out = <Place>[];
@@ -137,7 +160,8 @@ out center tags 300;
       final lat = (e['lat'] ?? e['center']?['lat']) as num?;
       final lng = (e['lon'] ?? e['center']?['lon']) as num?;
       if (lat == null || lng == null) continue;
-      final isMosque = tags['amenity'] == 'place_of_worship';
+      final isMosque =
+          tags['amenity'] == 'place_of_worship' || tags['building'] == 'mosque';
       final name =
           (tags['name:ru'] ?? tags['name'] ?? tags['name:en'] ?? '') as String;
       final street = tags['addr:street'] as String?;
@@ -157,7 +181,29 @@ out center tags 300;
         ),
       );
     }
-    return out;
+    return _dropDuplicateBuildings(out);
+  }
+
+  /// Здание мечети (building=mosque) часто отмечено в OSM отдельно от точки
+  /// мечети внутри него. Оставляем точку, а здание — только если рядом
+  /// (ближе ~80 м) другой мечети нет.
+  static List<Place> _dropDuplicateBuildings(List<Place> all) {
+    bool buildingOnly(Place p) =>
+        p.kind == PlaceKind.mosque &&
+        p.tags['building'] == 'mosque' &&
+        p.tags['amenity'] != 'place_of_worship';
+    final mosques = all
+        .where((p) => p.kind == PlaceKind.mosque && !buildingOnly(p))
+        .toList();
+    const d = 0.0008; // ~80 м по широте
+    return [
+      for (final p in all)
+        if (!buildingOnly(p) ||
+            !mosques.any(
+              (m) => (m.lat - p.lat).abs() < d && (m.lng - p.lng).abs() < d * 2,
+            ))
+          p,
+    ];
   }
 
   /// OpenStreetMap + каталог. Записи каталога заменяют совпавшие объекты OSM.

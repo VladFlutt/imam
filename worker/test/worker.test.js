@@ -102,7 +102,7 @@ test('заявка с запретными словами отклоняется
   assert.equal(r.status, 400);
 });
 
-import { fetchOverpass, parseBbox, places } from '../src/places.js';
+import { fetchOverpass, overpassQuery, parseBbox, places, HALAL_NAMES, MOSQUE_NAMES } from '../src/places.js';
 
 test('места: границы проверяются и округляются', () => {
   const p = (q) => parseBbox(new URLSearchParams(q));
@@ -144,4 +144,35 @@ test('места: все источники недоступны → 503', async
   const fake = async () => new Response('busy', { status: 504 });
   const res = await places(new Request('https://x/places?s=55.7&w=37.5&n=55.8&e=37.7'), {}, fake);
   assert.equal(res.status, 503);
+});
+
+test('места: мечети и халяль выдаются отдельно, ищутся и по названию', () => {
+  const q = overpassQuery([55.7, 37.5, 55.8, 37.7]);
+  assert.match(q, /\.m out center tags \d+;/);
+  assert.match(q, /\.h out center tags \d+;/);
+  assert.match(q, /building"="mosque/);
+  const halal = new RegExp(HALAL_NAMES);
+  for (const n of ['Халяль маркет', 'ХАЛЯЛЬ', 'Кафе халяль', 'Halal Food', 'مطعم حلال']) assert.ok(halal.test(n), n);
+  assert.ok(!halal.test('Шаурма'));
+  const mosque = new RegExp(MOSQUE_NAMES);
+  for (const n of ['Соборная мечеть', 'Мәчет', 'Masjid Al-Noor', 'Merkez Camii', 'مسجد']) assert.ok(mosque.test(n), n);
+  assert.ok(!mosque.test('Храм Христа Спасителя'));
+});
+
+test('места: из Photon берутся заведения с «халяль» в названии, но не улицы', async () => {
+  const fake = async (url) => {
+    const u = String(url);
+    if (!u.includes('photon')) return new Response('busy', { status: 504 });
+    if (u.includes('q=halal') || u.includes(encodeURIComponent('халяль'))) {
+      return Response.json({ features: [
+        { geometry: { coordinates: [37.6, 55.75] }, properties: { osm_type: 'N', osm_id: 11, osm_key: 'shop', osm_value: 'butcher', name: 'Халяль мясо' } },
+        { geometry: { coordinates: [37.61, 55.76] }, properties: { osm_type: 'W', osm_id: 12, osm_key: 'highway', osm_value: 'residential', name: 'Халяльная улица' } },
+      ] });
+    }
+    return Response.json({ features: [] });
+  };
+  const res = await places(new Request('https://x/places?s=55.7&w=37.5&n=55.8&e=37.7'), {}, fake);
+  const body = await res.json();
+  assert.equal(body.elements.length, 1);
+  assert.equal(body.elements[0].tags.shop, 'butcher');
 });

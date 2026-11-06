@@ -22,16 +22,38 @@ export function parseBbox(params) {
   return [s, w, n, e].map((x) => +x.toFixed(2));
 }
 
+// Названия мечетей на языках приложения и соседей: помогает найти мечети,
+// у которых в OSM не указана религия. Флаг ,i в Overpass не всегда работает
+// для кириллицы, поэтому первая буква указана в обоих регистрах.
+export const MOSQUE_NAMES =
+  '[Мм]ечет|[Мм]ечит|[Мм]әчет|[Мм]ешіт|[Мм]асджид|[Mm]osque|[Mm]osqu[ée]e|[Mm]asjid|[Mm]esjid|[Mm]oschee|[Cc]amii|[Mm]escit|مسجد|جامع';
+export const HALAL_NAMES = '[Hh]alal|HALAL|[Хх]ал[яа]ль|ХАЛ[ЯА]ЛЬ|حلال';
+
+/**
+ * Мечети и халяль отдельными выдачами: раньше общий лимит 300 обрезал
+ * мечети в больших городах. Кроме явных тегов ищем места, которые
+ * сами называют себя халяль (частый случай в России и СНГ), и мечети
+ * без тега religion; такие халяль-места приложение показывает
+ * с пометкой «не подтверждено», как и остальные несертифицированные.
+ */
 export function overpassQuery([s, w, n, e]) {
   const b = `${s},${w},${n},${e}`;
   return `[out:json][timeout:25];
 (
-  nwr["amenity"="place_of_worship"]["religion"="muslim"](${b});
+  nwr["amenity"="place_of_worship"]["religion"~"^(muslim|islam)$"](${b});
+  nwr["building"="mosque"](${b});
+  nwr["amenity"="place_of_worship"][!"religion"]["name"~"${MOSQUE_NAMES}"](${b});
+)->.m;
+(
   nwr["diet:halal"~"^(yes|only)$"](${b});
   nwr["cuisine"~"halal"](${b});
   nwr["halal"="yes"](${b});
-);
-out center tags 300;`;
+  nwr["amenity"~"^(restaurant|cafe|fast_food|food_court|canteen)$"]["name"~"${HALAL_NAMES}"](${b});
+  nwr["shop"]["name"~"${HALAL_NAMES}"](${b});
+)->.h;
+(.h; - .m;)->.h;
+.m out center tags 500;
+.h out center tags 500;`;
 }
 
 /** Перебирает зеркала, пока одно не ответит JSON. */
@@ -61,17 +83,30 @@ export async function fetchOverpass(query, fetchImpl = fetch, mirrors = MIRRORS)
   throw err;
 }
 
-/** Запасной источник — Photon (поиск по OSM): только мечети, без халяль. */
+const PHOTON_QUERIES = [
+  { q: 'mosque', tag: 'amenity:place_of_worship' },
+  { q: 'мечеть', tag: 'amenity:place_of_worship' },
+  { q: 'masjid', tag: 'amenity:place_of_worship' },
+  { q: 'халяль', kind: 'halal' },
+  { q: 'halal', kind: 'halal' },
+];
+
+/** Запасной источник — Photon (поиск по OSM): мечети и места с «халяль» в названии. */
 export async function fetchPhoton([s, w, n, e], fetchImpl = fetch) {
   const seen = new Map();
   let ok = 0;
-  for (const q of ['mosque', 'мечеть', 'masjid']) {
+  for (const { q, tag, kind } of PHOTON_QUERIES) {
     const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&bbox=${w},${s},${e},${n}` +
-      '&osm_tag=amenity:place_of_worship&limit=100';
-    const r = await fetchImpl(url, {
-      headers: { 'user-agent': 'imam-app/1.0 (+https://github.com/VladFlutt/imam)' },
-      signal: AbortSignal.timeout(15000),
-    });
+      (tag ? `&osm_tag=${tag}` : '') + '&limit=100';
+    let r;
+    try {
+      r = await fetchImpl(url, {
+        headers: { 'user-agent': 'imam-app/1.0 (+https://github.com/VladFlutt/imam)' },
+        signal: AbortSignal.timeout(15000),
+      });
+    } catch {
+      continue;
+    }
     if (!r.ok) continue;
     ok++;
     const data = await r.json();
@@ -79,12 +114,21 @@ export async function fetchPhoton([s, w, n, e], fetchImpl = fetch) {
       const p = f.properties ?? {};
       const [lon, lat] = f.geometry?.coordinates ?? [];
       if (typeof lat !== 'number' || typeof lon !== 'number') continue;
+      let tags;
+      if (kind === 'halal') {
+        // Только заведения и магазины, а не улицы или остановки с таким словом.
+        if (!['amenity', 'shop'].includes(p.osm_key) || p.osm_value === 'place_of_worship') continue;
+        if (!p.name || !new RegExp(HALAL_NAMES).test(p.name)) continue;
+        tags = { [p.osm_key]: p.osm_value };
+      } else {
+        tags = { amenity: 'place_of_worship', religion: 'muslim' };
+      }
       const type = { N: 'node', W: 'way', R: 'relation' }[p.osm_type] ?? 'node';
-      const tags = { amenity: 'place_of_worship', religion: 'muslim' };
       if (p.name) tags.name = p.name;
       if (p.street) tags['addr:street'] = p.street;
       if (p.housenumber) tags['addr:housenumber'] = p.housenumber;
-      seen.set(`${type}/${p.osm_id}`, { type, id: p.osm_id, lat, lon, tags });
+      const id = `${type}/${p.osm_id}`;
+      if (!seen.has(id)) seen.set(id, { type, id: p.osm_id, lat, lon, tags });
     }
   }
   if (!ok) throw Object.assign(new Error('photon'), { name: 'PhotonError' });
@@ -96,7 +140,8 @@ export async function places(request, cors, fetchImpl = fetch) {
   const bbox = parseBbox(url.searchParams);
   const headers = { ...cors, 'content-type': 'application/json; charset=utf-8' };
   if (!bbox) return new Response(JSON.stringify({ error: 'bbox' }), { status: 400, headers });
-  const key = new Request(`https://cache.imam/places?b=${bbox.join(',')}`);
+  // v2: запрос расширен, старые ответы в кеше неполные.
+  const key = new Request(`https://cache.imam/places/v2?b=${bbox.join(',')}`);
   const cache = globalThis.caches?.default;
   const hit = cache && (await cache.match(key));
   if (hit) return new Response(hit.body, { headers: { ...headers, 'x-cache': 'hit' } });
@@ -118,7 +163,7 @@ export async function places(request, cors, fetchImpl = fetch) {
   }
   const body = JSON.stringify(partial ? { elements, partial } : { elements });
   if (cache) {
-    // Неполный ответ (только мечети из Photon) держим час, полный — сутки.
+    // Неполный ответ (из Photon) держим час, полный — сутки.
     await cache.put(key, new Response(body, {
       headers: { 'content-type': 'application/json', 'cache-control': `public, max-age=${partial ? 3600 : 86400}` },
     }));
